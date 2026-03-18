@@ -1,4 +1,4 @@
-name: CD - Deploy to EC2
+name: CD - Deploy to Vercel (Production)
 
 on:
   push:
@@ -7,56 +7,47 @@ on:
 
 jobs:
   deploy:
-    name: Deploy to EC2
+    name: Deploy to Vercel (Production)
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Deploy to EC2 via SSH
-        uses: appleboy/ssh-action@v1
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USERNAME }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          port: 22
-          script_stop: true
-          script: |
-            echo "========== Starting deployment =========="
+          node-version: "20"
+          cache: "npm"
 
-            cd ~
+      - name: Install dependencies
+        run: npm ci
 
-            # Clone once if not exists
-            if [ ! -d "cms-backend/.git" ]; then
-              echo "Cloning repository..."
-              git clone git@github.com:khaerulilman/cms-backend.git cms-backend
-            fi
+      - name: Generate Prisma Client
+        run: npx prisma generate
 
-            cd ~/cms-backend || exit 1
+      - name: Install Vercel CLI
+        run: npm install -g vercel
 
-            echo "Pulling latest changes..."
-            git fetch origin
-            git checkout main
-            git reset --hard origin/main
+      - name: Pull Vercel Environment (Production)
+        run: vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
-            echo "Installing production dependencies..."
-            npm install --omit=dev
+      - name: Build for Production
+        run: vercel build --prod --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
-            echo "Generating Prisma Client..."
-            npx prisma generate
+      - name: Deploy to Vercel (Production)
+        run: vercel deploy --prebuilt --prod --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
-            echo "Running database migrations..."
-            npx prisma migrate deploy
-
-            echo "Reloading application with PM2..."
-            pm2 reload portfolio-cms --update-env || \
-            pm2 start ecosystem.config.cjs --only portfolio-cms --env production
-
-            echo "Saving PM2 configuration..."
-            pm2 save
-
-            echo "Checking PM2 status..."
-            pm2 list
-
-            echo "========== Deployment complete =========="
+      - name: Run Database Migrations
+        run: npx prisma migrate deploy
+        env:
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
