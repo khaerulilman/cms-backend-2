@@ -1,4 +1,4 @@
-name: CD - Deploy to EC2 (Staging)
+name: CD - Deploy to Vercel (Staging)
 
 on:
   push:
@@ -7,59 +7,51 @@ on:
 
 jobs:
   deploy:
-    name: Deploy to EC2 (Staging)
+    name: Deploy to Vercel (Staging/Preview)
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Deploy to EC2 via SSH (Staging)
-        uses: appleboy/ssh-action@v1
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
         with:
-          host: ${{ secrets.EC2_HOST }}
-          username: ${{ secrets.EC2_USERNAME }}
-          key: ${{ secrets.EC2_SSH_KEY }}
-          port: 22
-          script_stop: true
-          script: |
-            echo "========== Starting staging deployment =========="
+          node-version: "20"
+          cache: "npm"
 
-            cd ~
+      - name: Install dependencies
+        run: npm ci
 
-            # Clone once if not exists
-            if [ ! -d "cms-backend-staging/.git" ]; then
-              echo "Cloning repository for staging..."
-              git clone git@github.com:khaerulilman/cms-backend.git cms-backend-staging
-            fi
+      - name: Generate Prisma Client
+        run: npx prisma generate
 
-            cd ~/cms-backend-staging || exit 1
+      - name: Install Vercel CLI
+        run: npm install -g vercel
 
-            echo "Pulling latest changes from staging branch..."
-            git fetch origin
-            git checkout staging
-            git reset --hard origin/staging
+      - name: Pull Vercel Environment (Preview)
+        run: vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
-            echo "Installing all dependencies (including dev)..."
-            npm install
+      - name: Build for Staging (Preview)
+        run: vercel build --token=${{ secrets.VERCEL_TOKEN }}
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
-            echo "Generating Prisma Client..."
-            npx prisma generate
+      - name: Deploy to Vercel (Staging/Preview)
+        id: deploy
+        run: |
+          url=$(vercel deploy --prebuilt --token=${{ secrets.VERCEL_TOKEN }})
+          echo "deploy_url=$url" >> $GITHUB_OUTPUT
+          echo "Deployed to: $url"
+        env:
+          VERCEL_ORG_ID: ${{ secrets.VERCEL_ORG_ID }}
+          VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
-            echo "Running database migrations..."
-            npx prisma migrate deploy
-
-            echo "Stopping existing staging PM2 process..."
-            pm2 stop portfolio-cms-staging 2>/dev/null || true
-            pm2 delete portfolio-cms-staging 2>/dev/null || true
-
-            echo "Starting staging application with PM2 on port 4001..."
-            pm2 start ecosystem.config.cjs --only portfolio-cms-staging --env staging
-
-            echo "Saving PM2 configuration..."
-            pm2 save
-
-            echo "Checking PM2 status..."
-            pm2 list
-
-            echo "========== Staging deployment complete =========="
+      - name: Run Database Migrations (Staging)
+        run: npx prisma migrate deploy
+        env:
+          DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
