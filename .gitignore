@@ -1,0 +1,19 @@
+node_modules
+# Keep environment variables out of version control
+.env
+.env.test
+
+/generated/prisma
+# Upload directory
+uploads/
+coverage/
+web-server-test-ec2.pem
+coverage/
+.vscode/
+prompt/
+scripts/
+
+# Newman test reports (generated in CI)
+newman-reports/
+
+

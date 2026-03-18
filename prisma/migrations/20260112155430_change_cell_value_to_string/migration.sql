@@ -1,0 +1,2 @@
+-- AlterTable
+ALTER TABLE "CmsCell" ALTER COLUMN "value" SET DATA TYPE TEXT;

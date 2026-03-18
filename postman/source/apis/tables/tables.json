@@ -1,0 +1,957 @@
+[
+  {
+    "name": "Create Table - Success",
+    "event": [
+      {
+        "listen": "prerequest",
+        "script": {
+          "exec": [
+            "if (!pm.environment.get('access_token')) {",
+            "    throw new Error('access_token is not set. Please run Auth folder first.');",
+            "}"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      },
+      {
+        "listen": "test",
+        "script": {
+          "exec": [
+            "// NOTE: Before running this test, make sure to:",
+            "// 1. Run 'Register - Success' to create a user",
+            "// 2. Run 'Login - Success' to get access_token",
+            "// 3. Run 'Create Project - Success' to get a valid project_id",
+            "",
+            "pm.test('Status code is 201', function () {",
+            "    pm.expect(pm.response.code).to.equal(201);",
+            "});",
+            "",
+            "pm.test('Response is JSON', function () {",
+            "    pm.response.to.be.json;",
+            "});",
+            "",
+            "pm.test('Response has success flag set to true', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.success).to.equal(true);",
+            "});",
+            "",
+            "pm.test('Response contains table data', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.data).to.exist;",
+            "    pm.expect(jsonData.data.id).to.exist;",
+            "    pm.expect(jsonData.data.name).to.equal('Test Table');",
+            "    pm.expect(jsonData.data.projectId).to.exist;",
+            "});",
+            "",
+            "// Save first table ID for delete tests",
+            "if (pm.response.code === 201) {",
+            "    const firstTableId = pm.response.json().data.id;",
+            "    pm.environment.set('table_id_for_delete', firstTableId);",
+            "    ",
+            "    // Create second table for column and other tests",
+            "    pm.sendRequest({",
+            "        url: pm.environment.get('base_url') + '/v1/tables',",
+            "        method: 'POST',",
+            "        header: {",
+            "            'Content-Type': 'application/json',",
+            "            'Cookie': 'accessToken=' + pm.environment.get('access_token')",
+            "        },",
+            "        body: {",
+            "            mode: 'raw',",
+            "            raw: JSON.stringify({",
+            "                projectId: pm.environment.get('project_id'),",
+            "                name: 'Persistent Table',",
+            "                isSubTable: false",
+            "            })",
+            "        }",
+            "    }, function (err, response) {",
+            "        if (!err && response.code === 201) {",
+            "            const secondTableId = response.json().data.id;",
+            "            pm.environment.set('table_id', secondTableId);",
+            "            console.log('✅ Created 2 tables:');",
+            "            console.log('   - table_id_for_delete:', firstTableId);",
+            "            console.log('   - table_id (persistent):', secondTableId);",
+            "        }",
+            "    });",
+            "}"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      }
+    ],
+    "request": {
+      "method": "POST",
+      "header": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "key": "Cookie",
+          "value": "accessToken={{access_token}}"
+        }
+      ],
+      "body": {
+        "mode": "raw",
+        "raw": "{\n    \"projectId\": \"{{project_id}}\",\n    \"name\": \"Test Table\",\n    \"isSubTable\": false\n}"
+      },
+      "url": {
+        "raw": "{{base_url}}/v1/tables",
+        "host": ["{{base_url}}"],
+        "path": ["v1", "tables"]
+      }
+    },
+    "response": []
+  },
+  {
+    "name": "Create Table - Empty Name",
+    "event": [
+      {
+        "listen": "prerequest",
+        "script": {
+          "exec": [
+            "if (!pm.environment.get('access_token')) {",
+            "    throw new Error('access_token is not set. Please run Auth folder first.');",
+            "}"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      },
+      {
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test('Status code is 400', function () {",
+            "    pm.expect(pm.response.code).to.equal(400);",
+            "});",
+            "",
+            "pm.test('Response has success flag set to false', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.success).to.equal(false);",
+            "});",
+            "",
+            "pm.test('Response contains validation error', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.message).to.include('Validation');",
+            "});"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      }
+    ],
+    "request": {
+      "method": "POST",
+      "header": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "key": "Cookie",
+          "value": "accessToken={{access_token}}"
+        }
+      ],
+      "body": {
+        "mode": "raw",
+        "raw": "{\n    \"projectId\": \"{{project_id}}\",\n    \"name\": \"\",\n    \"isSubTable\": false\n}"
+      },
+      "url": {
+        "raw": "{{base_url}}/v1/tables",
+        "host": ["{{base_url}}"],
+        "path": ["v1", "tables"]
+      }
+    },
+    "response": []
+  },
+  {
+    "name": "Create Table - Missing Project ID",
+    "event": [
+      {
+        "listen": "prerequest",
+        "script": {
+          "exec": [
+            "if (!pm.environment.get('access_token')) {",
+            "    throw new Error('access_token is not set. Please run Auth folder first.');",
+            "}"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      },
+      {
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test('Status code is 400', function () {",
+            "    pm.expect(pm.response.code).to.equal(400);",
+            "});",
+            "",
+            "pm.test('Response indicates validation error', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.success).to.equal(false);",
+            "});"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      }
+    ],
+    "request": {
+      "method": "POST",
+      "header": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "key": "Cookie",
+          "value": "accessToken={{access_token}}"
+        }
+      ],
+      "body": {
+        "mode": "raw",
+        "raw": "{\n    \"name\": \"Test Table\"\n}"
+      },
+      "url": {
+        "raw": "{{base_url}}/v1/tables",
+        "host": ["{{base_url}}"],
+        "path": ["v1", "tables"]
+      }
+    },
+    "response": []
+  },
+  {
+    "name": "Get Tables - Success",
+    "event": [
+      {
+        "listen": "prerequest",
+        "script": {
+          "exec": [
+            "if (!pm.environment.get('access_token')) {",
+            "    throw new Error('access_token is not set. Please run Auth folder first.');",
+            "}"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      },
+      {
+        "listen": "test",
+        "script": {
+          "exec": [
+            "// NOTE: Make sure you have run 'Create Project - Success' first to get a valid project_id",
+            "",
+            "pm.test('Status code is 200', function () {",
+            "    pm.expect(pm.response.code).to.equal(200);",
+            "});",
+            "",
+            "pm.test('Response is JSON', function () {",
+            "    pm.response.to.be.json;",
+            "});",
+            "",
+            "pm.test('Response has success flag set to true', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.success).to.equal(true);",
+            "});",
+            "",
+            "pm.test('Response contains array of tables', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.data).to.be.an('array');",
+            "});"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      }
+    ],
+    "request": {
+      "method": "GET",
+      "header": [
+        {
+          "key": "Cookie",
+          "value": "accessToken={{access_token}}"
+        }
+      ],
+      "url": {
+        "raw": "{{base_url}}/v1/tables/project/{{project_id}}",
+        "host": ["{{base_url}}"],
+        "path": ["v1", "tables", "project", "{{project_id}}"]
+      }
+    },
+    "response": []
+  },
+  {
+    "name": "Get Tables - Invalid Project ID",
+    "event": [
+      {
+        "listen": "prerequest",
+        "script": {
+          "exec": [
+            "if (!pm.environment.get('access_token')) {",
+            "    throw new Error('access_token is not set. Please run Auth folder first.');",
+            "}"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      },
+      {
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test('Status code is 500', function () {",
+            "    pm.expect(pm.response.code).to.equal(500);",
+            "});",
+            "",
+            "pm.test('Response indicates project not found', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.success).to.equal(false);",
+            "});"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      }
+    ],
+    "request": {
+      "method": "GET",
+      "header": [
+        {
+          "key": "Cookie",
+          "value": "accessToken={{access_token}}"
+        }
+      ],
+      "url": {
+        "raw": "{{base_url}}/v1/tables/project/invalid-id",
+        "host": ["{{base_url}}"],
+        "path": ["v1", "tables", "project", "invalid-id"]
+      }
+    },
+    "response": []
+  },
+  {
+    "name": "Get Table - Success",
+    "event": [
+      {
+        "listen": "prerequest",
+        "script": {
+          "exec": [
+            "if (!pm.environment.get('access_token')) {",
+            "    throw new Error('access_token is not set. Please run Auth folder first.');",
+            "}"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      },
+      {
+        "listen": "test",
+        "script": {
+          "exec": [
+            "// NOTE: Make sure you have run 'Create Table - Success' first to get a valid table_id",
+            "",
+            "pm.test('Status code is 200', function () {",
+            "    pm.expect(pm.response.code).to.equal(200);",
+            "});",
+            "",
+            "pm.test('Response has success flag set to true', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.success).to.equal(true);",
+            "});",
+            "",
+            "pm.test('Response contains table data', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.data.id).to.exist;",
+            "    pm.expect(jsonData.data.name).to.exist;",
+            "    pm.expect(jsonData.data.columns).to.be.an('array');",
+            "});"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      }
+    ],
+    "request": {
+      "method": "GET",
+      "header": [
+        {
+          "key": "Cookie",
+          "value": "accessToken={{access_token}}"
+        }
+      ],
+      "url": {
+        "raw": "{{base_url}}/v1/tables/{{table_id}}",
+        "host": ["{{base_url}}"],
+        "path": ["v1", "tables", "{{table_id}}"]
+      }
+    },
+    "response": []
+  },
+  {
+    "name": "Get Table - Not Found",
+    "event": [
+      {
+        "listen": "prerequest",
+        "script": {
+          "exec": [
+            "if (!pm.environment.get('access_token')) {",
+            "    throw new Error('access_token is not set. Please run Auth folder first.');",
+            "}"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      },
+      {
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test('Status code is 500', function () {",
+            "    pm.expect(pm.response.code).to.equal(500);",
+            "});",
+            "",
+            "pm.test('Response indicates table not found', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.success).to.equal(false);",
+            "});"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      }
+    ],
+    "request": {
+      "method": "GET",
+      "header": [
+        {
+          "key": "Cookie",
+          "value": "accessToken={{access_token}}"
+        }
+      ],
+      "url": {
+        "raw": "{{base_url}}/v1/tables/invalid-table-id",
+        "host": ["{{base_url}}"],
+        "path": ["v1", "tables", "invalid-table-id"]
+      }
+    },
+    "response": []
+  },
+  {
+    "name": "Update Table - Success",
+    "event": [
+      {
+        "listen": "prerequest",
+        "script": {
+          "exec": [
+            "if (!pm.environment.get('access_token')) {",
+            "    throw new Error('access_token is not set. Please run Auth folder first.');",
+            "}"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      },
+      {
+        "listen": "test",
+        "script": {
+          "exec": [
+            "// NOTE: Make sure you have run 'Create Table - Success' first to get a valid table_id",
+            "",
+            "pm.test('Status code is 200', function () {",
+            "    pm.expect(pm.response.code).to.equal(200);",
+            "});",
+            "",
+            "pm.test('Response has success flag set to true', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.success).to.equal(true);",
+            "});",
+            "",
+            "pm.test('Table name is updated', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.data.name).to.equal('Updated Table Name');",
+            "});"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      }
+    ],
+    "request": {
+      "method": "PUT",
+      "header": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "key": "Cookie",
+          "value": "accessToken={{access_token}}"
+        }
+      ],
+      "body": {
+        "mode": "raw",
+        "raw": "{\n    \"name\": \"Updated Table Name\"\n}"
+      },
+      "url": {
+        "raw": "{{base_url}}/v1/tables/{{table_id}}",
+        "host": ["{{base_url}}"],
+        "path": ["v1", "tables", "{{table_id}}"]
+      }
+    },
+    "response": []
+  },
+  {
+    "name": "Update Table - Empty Name",
+    "event": [
+      {
+        "listen": "prerequest",
+        "script": {
+          "exec": [
+            "if (!pm.environment.get('access_token')) {",
+            "    throw new Error('access_token is not set. Please run Auth folder first.');",
+            "}"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      },
+      {
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test('Status code is 400', function () {",
+            "    pm.expect(pm.response.code).to.equal(400);",
+            "});",
+            "",
+            "pm.test('Response has success flag set to false', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.success).to.equal(false);",
+            "});"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      }
+    ],
+    "request": {
+      "method": "PUT",
+      "header": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "key": "Cookie",
+          "value": "accessToken={{access_token}}"
+        }
+      ],
+      "body": {
+        "mode": "raw",
+        "raw": "{\n    \"name\": \"\"\n}"
+      },
+      "url": {
+        "raw": "{{base_url}}/v1/tables/{{table_id}}",
+        "host": ["{{base_url}}"],
+        "path": ["v1", "tables", "{{table_id}}"]
+      }
+    },
+    "response": []
+  },
+  {
+    "name": "Update Table - Not Found",
+    "event": [
+      {
+        "listen": "prerequest",
+        "script": {
+          "exec": [
+            "if (!pm.environment.get('access_token')) {",
+            "    throw new Error('access_token is not set. Please run Auth folder first.');",
+            "}"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      },
+      {
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test('Status code is 500', function () {",
+            "    pm.expect(pm.response.code).to.equal(500);",
+            "});",
+            "",
+            "pm.test('Response indicates table not found', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.success).to.equal(false);",
+            "});"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      }
+    ],
+    "request": {
+      "method": "PUT",
+      "header": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "key": "Cookie",
+          "value": "accessToken={{access_token}}"
+        }
+      ],
+      "body": {
+        "mode": "raw",
+        "raw": "{\n    \"name\": \"New Name\"\n}"
+      },
+      "url": {
+        "raw": "{{base_url}}/v1/tables/invalid-table-id",
+        "host": ["{{base_url}}"],
+        "path": ["v1", "tables", "invalid-table-id"]
+      }
+    },
+    "response": []
+  },
+  {
+    "name": "Delete Table - Success",
+    "event": [
+      {
+        "listen": "prerequest",
+        "script": {
+          "exec": [
+            "if (!pm.environment.get('access_token')) {",
+            "    throw new Error('access_token is not set. Please run Auth folder first.');",
+            "}"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      },
+      {
+        "listen": "test",
+        "script": {
+          "exec": [
+            "// NOTE: Make sure you have run 'Create Table - Success' first to get a valid table_id_for_delete",
+            "",
+            "pm.test('Status code is 200', function () {",
+            "    pm.expect(pm.response.code).to.equal(200);",
+            "});",
+            "",
+            "pm.test('Response has success flag set to true', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.success).to.equal(true);",
+            "});",
+            "",
+            "pm.test('Response contains success message', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.message).to.include('deleted');",
+            "});"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      }
+    ],
+    "request": {
+      "method": "DELETE",
+      "header": [
+        {
+          "key": "Cookie",
+          "value": "accessToken={{access_token}}"
+        }
+      ],
+      "url": {
+        "raw": "{{base_url}}/v1/tables/{{table_id_for_delete}}",
+        "host": ["{{base_url}}"],
+        "path": ["v1", "tables", "{{table_id_for_delete}}"]
+      }
+    },
+    "response": []
+  },
+  {
+    "name": "Duplicate Table - Success",
+    "event": [
+      {
+        "listen": "prerequest",
+        "script": {
+          "exec": [
+            "if (!pm.environment.get('access_token')) {",
+            "    throw new Error('access_token is not set. Please run Auth folder first.');",
+            "}",
+            "",
+            "if (!pm.environment.get('table_id')) {",
+            "    throw new Error('table_id is not set. Please run Create Table - Success first.');",
+            "}"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      },
+      {
+        "listen": "test",
+        "script": {
+          "exec": [
+            "// NOTE: Make sure you have run 'Create Table - Success' first to get a valid table_id",
+            "",
+            "pm.test('Status code is 201', function () {",
+            "    pm.expect(pm.response.code).to.equal(201);",
+            "});",
+            "",
+            "pm.test('Response is JSON', function () {",
+            "    pm.response.to.be.json;",
+            "});",
+            "",
+            "pm.test('Response has success flag set to true', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.success).to.equal(true);",
+            "});",
+            "",
+            "pm.test('Response contains duplicated table data', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.data).to.exist;",
+            "    pm.expect(jsonData.data.id).to.exist;",
+            "    pm.expect(jsonData.data.id).to.not.equal(pm.environment.get('table_id'));",
+            "    pm.expect(jsonData.data.name).to.include('(Copy)');",
+            "    pm.expect(jsonData.data.columns).to.be.an('array');",
+            "    pm.expect(jsonData.data.rows).to.be.an('array');",
+            "});",
+            "",
+            "pm.test('Response message indicates duplication success', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.message).to.include('duplicated');",
+            "});"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      }
+    ],
+    "request": {
+      "method": "POST",
+      "header": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "key": "Cookie",
+          "value": "accessToken={{access_token}}"
+        }
+      ],
+      "body": {
+        "mode": "raw",
+        "raw": "{}"
+      },
+      "url": {
+        "raw": "{{base_url}}/v1/tables/{{table_id}}/duplicate",
+        "host": ["{{base_url}}"],
+        "path": ["v1", "tables", "{{table_id}}", "duplicate"]
+      }
+    },
+    "response": []
+  },
+  {
+    "name": "Duplicate Table - Not Found",
+    "event": [
+      {
+        "listen": "prerequest",
+        "script": {
+          "exec": [
+            "if (!pm.environment.get('access_token')) {",
+            "    throw new Error('access_token is not set. Please run Auth folder first.');",
+            "}"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      },
+      {
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test('Status code is 500', function () {",
+            "    pm.expect(pm.response.code).to.equal(500);",
+            "});",
+            "",
+            "pm.test('Response has success flag set to false', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.success).to.equal(false);",
+            "});",
+            "",
+            "pm.test('Response indicates table not found', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.message).to.include('not found');",
+            "});"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      }
+    ],
+    "request": {
+      "method": "POST",
+      "header": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "key": "Cookie",
+          "value": "accessToken={{access_token}}"
+        }
+      ],
+      "body": {
+        "mode": "raw",
+        "raw": "{}"
+      },
+      "url": {
+        "raw": "{{base_url}}/v1/tables/invalid-table-id/duplicate",
+        "host": ["{{base_url}}"],
+        "path": ["v1", "tables", "invalid-table-id", "duplicate"]
+      }
+    },
+    "response": []
+  },
+  {
+    "name": "Duplicate Table - Invalid UUID",
+    "event": [
+      {
+        "listen": "prerequest",
+        "script": {
+          "exec": [
+            "if (!pm.environment.get('access_token')) {",
+            "    throw new Error('access_token is not set. Please run Auth folder first.');",
+            "}"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      },
+      {
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test('Status code is 500', function () {",
+            "    pm.expect(pm.response.code).to.equal(500);",
+            "});",
+            "",
+            "pm.test('Response has success flag set to false', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.success).to.equal(false);",
+            "});"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      }
+    ],
+    "request": {
+      "method": "POST",
+      "header": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "key": "Cookie",
+          "value": "accessToken={{access_token}}"
+        }
+      ],
+      "body": {
+        "mode": "raw",
+        "raw": "{}"
+      },
+      "url": {
+        "raw": "{{base_url}}/v1/tables/not-a-uuid/duplicate",
+        "host": ["{{base_url}}"],
+        "path": ["v1", "tables", "not-a-uuid", "duplicate"]
+      }
+    },
+    "response": []
+  },
+  {
+    "name": "Delete Table - Not Found",
+    "event": [
+      {
+        "listen": "prerequest",
+        "script": {
+          "exec": [
+            "if (!pm.environment.get('access_token')) {",
+            "    throw new Error('access_token is not set. Please run Auth folder first.');",
+            "}"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      },
+      {
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test('Status code is 500', function () {",
+            "    pm.expect(pm.response.code).to.equal(500);",
+            "});",
+            "",
+            "pm.test('Response indicates table not found', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.success).to.equal(false);",
+            "});"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      }
+    ],
+    "request": {
+      "method": "DELETE",
+      "header": [
+        {
+          "key": "Cookie",
+          "value": "accessToken={{access_token}}"
+        }
+      ],
+      "url": {
+        "raw": "{{base_url}}/v1/tables/invalid-table-id",
+        "host": ["{{base_url}}"],
+        "path": ["v1", "tables", "invalid-table-id"]
+      }
+    },
+    "response": []
+  }
+]

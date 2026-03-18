@@ -1,0 +1,837 @@
+[
+  {
+    "name": "Create Column - Success",
+    "event": [
+      {
+        "listen": "prerequest",
+        "script": {
+          "exec": [
+            "if (!pm.environment.get('access_token')) {",
+            "    throw new Error('access_token is not set. Please run Auth folder first.');",
+            "}"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      },
+      {
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test('Status code is 201', function () {",
+            "    pm.expect(pm.response.code).to.equal(201);",
+            "});",
+            "",
+            "pm.test('Response time is less than 2000ms', function () {",
+            "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+            "});",
+            "",
+            "pm.test('Response is JSON', function () {",
+            "    pm.response.to.be.json;",
+            "});",
+            "",
+            "pm.test('Response has success flag set to true', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.success).to.equal(true);",
+            "});",
+            "",
+            "// Save data to environment",
+            "if (pm.response.code === 201) {",
+            "    const jsonData = pm.response.json();",
+            "    ",
+            "    if (jsonData.data && jsonData.data.length > 0) {",
+            "        pm.environment.set('column_id', jsonData.data[0].id);",
+            "        ",
+            "        // Set column_id_for_delete to a different column (second or third)",
+            "        if (jsonData.data.length > 2) {",
+            "            pm.environment.set('column_id_for_delete', jsonData.data[2].id);",
+            "        } else if (jsonData.data.length > 1) {",
+            "            pm.environment.set('column_id_for_delete', jsonData.data[1].id);",
+            "        }",
+            "    }",
+            "}"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      }
+    ],
+    "request": {
+      "method": "POST",
+      "header": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "key": "Cookie",
+          "value": "accessToken={{access_token}}"
+        }
+      ],
+      "body": {
+        "mode": "raw",
+        "raw": "{\n    \"tableId\": \"{{table_id}}\",\n    \"columns\": [\n        {\n            \"name\": \"Column 1\"\n        },\n        {\n            \"name\": \"Column 2\"\n        },\n        {\n            \"name\": \"Column 3\"\n        }\n    ]\n}"
+      },
+      "url": {
+        "raw": "{{base_url}}/v1/cms-columns",
+        "host": ["{{base_url}}"],
+        "path": ["v1", "cms-columns"]
+      }
+    },
+    "response": []
+  },
+  {
+    "name": "Create Column - Missing Table ID",
+    "event": [
+      {
+        "listen": "prerequest",
+        "script": {
+          "exec": [
+            "if (!pm.environment.get('access_token')) {",
+            "    throw new Error('access_token is not set. Please run Auth folder first.');",
+            "}"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      },
+      {
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test('Status code is 400', function () {",
+            "    pm.expect(pm.response.code).to.equal(400);",
+            "});",
+            "",
+            "pm.test('Response has success flag set to false', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.success).to.equal(false);",
+            "});"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      }
+    ],
+    "request": {
+      "method": "POST",
+      "header": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "key": "Cookie",
+          "value": "accessToken={{access_token}}"
+        }
+      ],
+      "body": {
+        "mode": "raw",
+        "raw": "{\n    \"columns\": [\n        {\n            \"name\": \"Column 1\"\n        }\n    ]\n}"
+      },
+      "url": {
+        "raw": "{{base_url}}/v1/cms-columns",
+        "host": ["{{base_url}}"],
+        "path": ["v1", "cms-columns"]
+      }
+    },
+    "response": []
+  },
+  {
+    "name": "Create Column - Empty Columns Array",
+    "event": [
+      {
+        "listen": "prerequest",
+        "script": {
+          "exec": [
+            "if (!pm.environment.get('access_token')) {",
+            "    throw new Error('access_token is not set. Please run Auth folder first.');",
+            "}"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      },
+      {
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test('Status code is 400', function () {",
+            "    pm.expect(pm.response.code).to.equal(400);",
+            "});",
+            "",
+            "pm.test('Response has success flag set to false', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.success).to.equal(false);",
+            "});"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      }
+    ],
+    "request": {
+      "method": "POST",
+      "header": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "key": "Cookie",
+          "value": "accessToken={{access_token}}"
+        }
+      ],
+      "body": {
+        "mode": "raw",
+        "raw": "{\n    \"tableId\": \"{{table_id}}\",\n    \"columns\": []\n}"
+      },
+      "url": {
+        "raw": "{{base_url}}/v1/cms-columns",
+        "host": ["{{base_url}}"],
+        "path": ["v1", "cms-columns"]
+      }
+    },
+    "response": []
+  },
+  {
+    "name": "Create Column - Missing Column Name",
+    "event": [
+      {
+        "listen": "prerequest",
+        "script": {
+          "exec": [
+            "if (!pm.environment.get('access_token')) {",
+            "    throw new Error('access_token is not set. Please run Auth folder first.');",
+            "}"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      },
+      {
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test('Status code is 400', function () {",
+            "    pm.expect(pm.response.code).to.equal(400);",
+            "});",
+            "",
+            "pm.test('Response has success flag set to false', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.success).to.equal(false);",
+            "});"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      }
+    ],
+    "request": {
+      "method": "POST",
+      "header": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "key": "Cookie",
+          "value": "accessToken={{access_token}}"
+        }
+      ],
+      "body": {
+        "mode": "raw",
+        "raw": "{\n    \"tableId\": \"{{table_id}}\",\n    \"columns\": [\n        {\n            \"name\": \"\"\n        }\n    ]\n}"
+      },
+      "url": {
+        "raw": "{{base_url}}/v1/cms-columns",
+        "host": ["{{base_url}}"],
+        "path": ["v1", "cms-columns"]
+      }
+    },
+    "response": []
+  },
+  {
+    "name": "Create Column - Invalid Table ID",
+    "event": [
+      {
+        "listen": "prerequest",
+        "script": {
+          "exec": [
+            "if (!pm.environment.get('access_token')) {",
+            "    throw new Error('access_token is not set. Please run Auth folder first.');",
+            "}"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      },
+      {
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test('Status code is 400 or 404', function () {",
+            "    pm.expect(pm.response.code).to.be.oneOf([400, 404]);",
+            "});",
+            "",
+            "pm.test('Response has success flag set to false', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.success).to.equal(false);",
+            "});"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      }
+    ],
+    "request": {
+      "method": "POST",
+      "header": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "key": "Cookie",
+          "value": "accessToken={{access_token}}"
+        }
+      ],
+      "body": {
+        "mode": "raw",
+        "raw": "{\n    \"tableId\": \"invalid-uuid\",\n    \"columns\": [\n        {\n            \"name\": \"Column 1\"\n        }\n    ]\n}"
+      },
+      "url": {
+        "raw": "{{base_url}}/v1/cms-columns",
+        "host": ["{{base_url}}"],
+        "path": ["v1", "cms-columns"]
+      }
+    },
+    "response": []
+  },
+  {
+    "name": "Get Columns by Table - Success",
+    "event": [
+      {
+        "listen": "prerequest",
+        "script": {
+          "exec": [
+            "if (!pm.environment.get('access_token')) {",
+            "    throw new Error('access_token is not set. Please run Auth folder first.');",
+            "}"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      },
+      {
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test('Status code is 200', function () {",
+            "    pm.expect(pm.response.code).to.equal(200);",
+            "});",
+            "",
+            "pm.test('Response is JSON', function () {",
+            "    pm.response.to.be.json;",
+            "});",
+            "",
+            "pm.test('Response has success flag set to true', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.success).to.equal(true);",
+            "});",
+            "",
+            "pm.test('Response contains columns array', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(Array.isArray(jsonData.data)).to.equal(true);",
+            "});"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      }
+    ],
+    "request": {
+      "method": "GET",
+      "header": [
+        {
+          "key": "Cookie",
+          "value": "accessToken={{access_token}}"
+        }
+      ],
+      "url": {
+        "raw": "{{base_url}}/v1/cms-columns/table/{{table_id}}",
+        "host": ["{{base_url}}"],
+        "path": ["v1", "cms-columns", "table", "{{table_id}}"]
+      }
+    },
+    "response": []
+  },
+  {
+    "name": "Get Columns by Table - Not Found",
+    "event": [
+      {
+        "listen": "prerequest",
+        "script": {
+          "exec": [
+            "if (!pm.environment.get('access_token')) {",
+            "    throw new Error('access_token is not set. Please run Auth folder first.');",
+            "}"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      },
+      {
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test('Status code is 500', function () {",
+            "    pm.expect(pm.response.code).to.equal(500);",
+            "});",
+            "",
+            "pm.test('Response has success flag set to false', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.success).to.equal(false);",
+            "});"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      }
+    ],
+    "request": {
+      "method": "GET",
+      "header": [
+        {
+          "key": "Cookie",
+          "value": "accessToken={{access_token}}"
+        }
+      ],
+      "url": {
+        "raw": "{{base_url}}/v1/cms-columns/table/invalid-table-id",
+        "host": ["{{base_url}}"],
+        "path": ["v1", "cms-columns", "table", "invalid-table-id"]
+      }
+    },
+    "response": []
+  },
+  {
+    "name": "Get Column by ID - Success",
+    "event": [
+      {
+        "listen": "prerequest",
+        "script": {
+          "exec": [
+            "if (!pm.environment.get('access_token')) {",
+            "    throw new Error('access_token is not set. Please run Auth folder first.');",
+            "}"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      },
+      {
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test('Status code is 200', function () {",
+            "    pm.expect(pm.response.code).to.equal(200);",
+            "});",
+            "",
+            "pm.test('Response is JSON', function () {",
+            "    pm.response.to.be.json;",
+            "});",
+            "",
+            "pm.test('Response has success flag set to true', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.success).to.equal(true);",
+            "});",
+            "",
+            "pm.test('Response contains column data', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.data).to.have.property('id');",
+            "    pm.expect(jsonData.data).to.have.property('name');",
+            "    pm.expect(jsonData.data).to.have.property('tableId');",
+            "});"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      }
+    ],
+    "request": {
+      "method": "GET",
+      "header": [
+        {
+          "key": "Cookie",
+          "value": "accessToken={{access_token}}"
+        }
+      ],
+      "url": {
+        "raw": "{{base_url}}/v1/cms-columns/{{column_id}}",
+        "host": ["{{base_url}}"],
+        "path": ["v1", "cms-columns", "{{column_id}}"]
+      }
+    },
+    "response": []
+  },
+  {
+    "name": "Get Column by ID - Not Found",
+    "event": [
+      {
+        "listen": "prerequest",
+        "script": {
+          "exec": [
+            "if (!pm.environment.get('access_token')) {",
+            "    throw new Error('access_token is not set. Please run Auth folder first.');",
+            "}"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      },
+      {
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test('Status code is 500', function () {",
+            "    pm.expect(pm.response.code).to.equal(500);",
+            "});",
+            "",
+            "pm.test('Response has success flag set to false', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.success).to.equal(false);",
+            "});"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      }
+    ],
+    "request": {
+      "method": "GET",
+      "header": [
+        {
+          "key": "Cookie",
+          "value": "accessToken={{access_token}}"
+        }
+      ],
+      "url": {
+        "raw": "{{base_url}}/v1/cms-columns/invalid-column-id",
+        "host": ["{{base_url}}"],
+        "path": ["v1", "cms-columns", "invalid-column-id"]
+      }
+    },
+    "response": []
+  },
+  {
+    "name": "Update Column - Success",
+    "event": [
+      {
+        "listen": "prerequest",
+        "script": {
+          "exec": [
+            "if (!pm.environment.get('access_token')) {",
+            "    throw new Error('access_token is not set. Please run Auth folder first.');",
+            "}"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      },
+      {
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test('Status code is 200', function () {",
+            "    pm.expect(pm.response.code).to.equal(200);",
+            "});",
+            "",
+            "pm.test('Response is JSON', function () {",
+            "    pm.response.to.be.json;",
+            "});",
+            "",
+            "pm.test('Response has success flag set to true', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.success).to.equal(true);",
+            "});",
+            "",
+            "pm.test('Response contains updated column data', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.data.name).to.equal('Updated Column Name');",
+            "});"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      }
+    ],
+    "request": {
+      "method": "PUT",
+      "header": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "key": "Cookie",
+          "value": "accessToken={{access_token}}"
+        }
+      ],
+      "body": {
+        "mode": "raw",
+        "raw": "{\n    \"name\": \"Updated Column Name\"\n}"
+      },
+      "url": {
+        "raw": "{{base_url}}/v1/cms-columns/{{column_id}}",
+        "host": ["{{base_url}}"],
+        "path": ["v1", "cms-columns", "{{column_id}}"]
+      }
+    },
+    "response": []
+  },
+  {
+    "name": "Update Column - Empty Name",
+    "event": [
+      {
+        "listen": "prerequest",
+        "script": {
+          "exec": [
+            "if (!pm.environment.get('access_token')) {",
+            "    throw new Error('access_token is not set. Please run Auth folder first.');",
+            "}"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      },
+      {
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test('Status code is 400', function () {",
+            "    pm.expect(pm.response.code).to.equal(400);",
+            "});",
+            "",
+            "pm.test('Response has success flag set to false', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.success).to.equal(false);",
+            "});"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      }
+    ],
+    "request": {
+      "method": "PUT",
+      "header": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "key": "Cookie",
+          "value": "accessToken={{access_token}}"
+        }
+      ],
+      "body": {
+        "mode": "raw",
+        "raw": "{\n    \"name\": \"\"\n}"
+      },
+      "url": {
+        "raw": "{{base_url}}/v1/cms-columns/{{column_id}}",
+        "host": ["{{base_url}}"],
+        "path": ["v1", "cms-columns", "{{column_id}}"]
+      }
+    },
+    "response": []
+  },
+  {
+    "name": "Update Column - Not Found",
+    "event": [
+      {
+        "listen": "prerequest",
+        "script": {
+          "exec": [
+            "if (!pm.environment.get('access_token')) {",
+            "    throw new Error('access_token is not set. Please run Auth folder first.');",
+            "}"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      },
+      {
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test('Status code is 500', function () {",
+            "    pm.expect(pm.response.code).to.equal(500);",
+            "});",
+            "",
+            "pm.test('Response has success flag set to false', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.success).to.equal(false);",
+            "});"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      }
+    ],
+    "request": {
+      "method": "PUT",
+      "header": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "key": "Cookie",
+          "value": "accessToken={{access_token}}"
+        }
+      ],
+      "body": {
+        "mode": "raw",
+        "raw": "{\n    \"name\": \"New Name\"\n}"
+      },
+      "url": {
+        "raw": "{{base_url}}/v1/cms-columns/invalid-column-id",
+        "host": ["{{base_url}}"],
+        "path": ["v1", "cms-columns", "invalid-column-id"]
+      }
+    },
+    "response": []
+  },
+  {
+    "name": "Delete Column - Success",
+    "event": [
+      {
+        "listen": "prerequest",
+        "script": {
+          "exec": [
+            "if (!pm.environment.get('access_token')) {",
+            "    throw new Error('access_token is not set. Please run Auth folder first.');",
+            "}"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      },
+      {
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test('Status code is 200', function () {",
+            "    pm.expect(pm.response.code).to.equal(200);",
+            "});",
+            "",
+            "pm.test('Response is JSON', function () {",
+            "    pm.response.to.be.json;",
+            "});",
+            "",
+            "pm.test('Response has success flag set to true', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.success).to.equal(true);",
+            "});"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      }
+    ],
+    "request": {
+      "method": "DELETE",
+      "header": [
+        {
+          "key": "Cookie",
+          "value": "accessToken={{access_token}}"
+        }
+      ],
+      "url": {
+        "raw": "{{base_url}}/v1/cms-columns/{{column_id_for_delete}}",
+        "host": ["{{base_url}}"],
+        "path": ["v1", "cms-columns", "{{column_id_for_delete}}"]
+      }
+    },
+    "response": []
+  },
+  {
+    "name": "Delete Column - Not Found",
+    "event": [
+      {
+        "listen": "prerequest",
+        "script": {
+          "exec": [
+            "if (!pm.environment.get('access_token')) {",
+            "    throw new Error('access_token is not set. Please run Auth folder first.');",
+            "}"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      },
+      {
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test('Status code is 500', function () {",
+            "    pm.expect(pm.response.code).to.equal(500);",
+            "});",
+            "",
+            "pm.test('Response has success flag set to false', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.success).to.equal(false);",
+            "});"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      }
+    ],
+    "request": {
+      "method": "DELETE",
+      "header": [
+        {
+          "key": "Cookie",
+          "value": "accessToken={{access_token}}"
+        }
+      ],
+      "url": {
+        "raw": "{{base_url}}/v1/cms-columns/invalid-column-id",
+        "host": ["{{base_url}}"],
+        "path": ["v1", "cms-columns", "invalid-column-id"]
+      }
+    },
+    "response": []
+  }
+]

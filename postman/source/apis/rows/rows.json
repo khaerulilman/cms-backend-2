@@ -1,0 +1,701 @@
+[
+  {
+    "name": "Create Row - Success",
+    "event": [
+      {
+        "listen": "prerequest",
+        "script": {
+          "exec": [
+            "if (!pm.environment.get('access_token')) {",
+            "    throw new Error('access_token is not set. Please run Auth folder first.');",
+            "}"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      },
+      {
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test('Status code is 201', function () {",
+            "    pm.expect(pm.response.code).to.equal(201);",
+            "});",
+            "",
+            "pm.test('Response is JSON', function () {",
+            "    pm.response.to.be.json;",
+            "});",
+            "",
+            "pm.test('Response has success property set to true', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.success).to.equal(true);",
+            "});",
+            "",
+            "pm.test('Response has message', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.message).to.equal('Row created successfully');",
+            "});",
+            "",
+            "pm.test('Response data contains row id', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.data).to.have.property('id');",
+            "    ",
+            "    // Save row_id for general use",
+            "    pm.environment.set('row_id', jsonData.data.id);",
+            "});",
+            "",
+            "pm.test('Response data contains tableId', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.data).to.have.property('tableId');",
+            "});"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      }
+    ],
+    "request": {
+      "method": "POST",
+      "header": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "key": "Cookie",
+          "value": "accessToken={{access_token}}"
+        }
+      ],
+      "body": {
+        "mode": "raw",
+        "raw": "{\n    \"tableId\": \"{{table_id}}\"\n}"
+      },
+      "url": {
+        "raw": "{{base_url}}/v1/cms-rows",
+        "host": ["{{base_url}}"],
+        "path": ["v1", "cms-rows"]
+      }
+    },
+    "response": []
+  },
+  {
+    "name": "Create Row - For Delete Test",
+    "event": [
+      {
+        "listen": "prerequest",
+        "script": {
+          "exec": [
+            "if (!pm.environment.get('access_token')) {",
+            "    throw new Error('access_token is not set. Please run Auth folder first.');",
+            "}"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      },
+      {
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test('Status code is 201', function () {",
+            "    pm.expect(pm.response.code).to.equal(201);",
+            "});",
+            "",
+            "pm.test('Response is JSON', function () {",
+            "    pm.response.to.be.json;",
+            "});",
+            "",
+            "pm.test('Response has success property set to true', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.success).to.equal(true);",
+            "});",
+            "",
+            "pm.test('Response has message', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.message).to.equal('Row created successfully');",
+            "});",
+            "",
+            "pm.test('Response data contains row id', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.data).to.have.property('id');",
+            "    ",
+            "    // Save row_id_for_delete specifically for delete testing",
+            "    pm.environment.set('row_id_for_delete', jsonData.data.id);",
+            "});",
+            "",
+            "pm.test('Response data contains tableId', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.data).to.have.property('tableId');",
+            "});"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      }
+    ],
+    "request": {
+      "method": "POST",
+      "header": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "key": "Cookie",
+          "value": "accessToken={{access_token}}"
+        }
+      ],
+      "body": {
+        "mode": "raw",
+        "raw": "{\n    \"tableId\": \"{{table_id}}\"\n}"
+      },
+      "url": {
+        "raw": "{{base_url}}/v1/cms-rows",
+        "host": ["{{base_url}}"],
+        "path": ["v1", "cms-rows"]
+      }
+    },
+    "response": []
+  },
+  {
+    "name": "Create Row - Missing Table ID",
+    "event": [
+      {
+        "listen": "prerequest",
+        "script": {
+          "exec": [
+            "if (!pm.environment.get('access_token')) {",
+            "    throw new Error('access_token is not set. Please run Auth folder first.');",
+            "}"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      },
+      {
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test('Status code is 400', function () {",
+            "    pm.expect(pm.response.code).to.equal(400);",
+            "});",
+            "",
+            "pm.test('Response has success property set to false', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.success).to.equal(false);",
+            "});",
+            "",
+            "pm.test('Response has error message', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.message).to.include('Validation error');",
+            "});"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      }
+    ],
+    "request": {
+      "method": "POST",
+      "header": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "key": "Cookie",
+          "value": "accessToken={{access_token}}"
+        }
+      ],
+      "body": {
+        "mode": "raw",
+        "raw": "{}"
+      },
+      "url": {
+        "raw": "{{base_url}}/v1/cms-rows",
+        "host": ["{{base_url}}"],
+        "path": ["v1", "cms-rows"]
+      }
+    },
+    "response": []
+  },
+  {
+    "name": "Get All Rows by Table - Success",
+    "event": [
+      {
+        "listen": "prerequest",
+        "script": {
+          "exec": [
+            "if (!pm.environment.get('access_token')) {",
+            "    throw new Error('access_token is not set. Please run Auth folder first.');",
+            "}"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      },
+      {
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test('Status code is 200', function () {",
+            "    pm.expect(pm.response.code).to.equal(200);",
+            "});",
+            "",
+            "pm.test('Response is JSON', function () {",
+            "    pm.response.to.be.json;",
+            "});",
+            "",
+            "pm.test('Response has success property set to true', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.success).to.equal(true);",
+            "});",
+            "",
+            "pm.test('Response has message', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.message).to.equal('Rows retrieved successfully');",
+            "});",
+            "",
+            "pm.test('Response data is an array', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.data).to.be.an('array');",
+            "});"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      }
+    ],
+    "request": {
+      "method": "GET",
+      "header": [
+        {
+          "key": "Cookie",
+          "value": "accessToken={{access_token}}"
+        }
+      ],
+      "url": {
+        "raw": "{{base_url}}/v1/cms-rows/table/{{table_id}}",
+        "host": ["{{base_url}}"],
+        "path": ["v1", "cms-rows", "table", "{{table_id}}"]
+      }
+    },
+    "response": []
+  },
+  {
+    "name": "Get All Rows by Table - Table Not Found",
+    "event": [
+      {
+        "listen": "prerequest",
+        "script": {
+          "exec": [
+            "if (!pm.environment.get('access_token')) {",
+            "    throw new Error('access_token is not set. Please run Auth folder first.');",
+            "}"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      },
+      {
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test('Status code is 400', function () {",
+            "    pm.expect(pm.response.code).to.equal(400);",
+            "});",
+            "",
+            "pm.test('Response has success property set to false', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.success).to.equal(false);",
+            "});"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      }
+    ],
+    "request": {
+      "method": "GET",
+      "header": [
+        {
+          "key": "Cookie",
+          "value": "accessToken={{access_token}}"
+        }
+      ],
+      "url": {
+        "raw": "{{base_url}}/v1/cms-rows/table/invalid-table-id",
+        "host": ["{{base_url}}"],
+        "path": ["v1", "cms-rows", "table", "invalid-table-id"]
+      }
+    },
+    "response": []
+  },
+  {
+    "name": "Get Row by ID - Success",
+    "event": [
+      {
+        "listen": "prerequest",
+        "script": {
+          "exec": [
+            "if (!pm.environment.get('access_token')) {",
+            "    throw new Error('access_token is not set. Please run Auth folder first.');",
+            "}"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      },
+      {
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test('Status code is 200', function () {",
+            "    pm.expect(pm.response.code).to.equal(200);",
+            "});",
+            "",
+            "pm.test('Response is JSON', function () {",
+            "    pm.response.to.be.json;",
+            "});",
+            "",
+            "pm.test('Response has success property set to true', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.success).to.equal(true);",
+            "});",
+            "",
+            "pm.test('Response has message', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.message).to.equal('Row retrieved successfully');",
+            "});",
+            "",
+            "pm.test('Response data contains row id', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.data).to.have.property('id');",
+            "});",
+            "",
+            "pm.test('Response data contains cells array', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.data).to.have.property('cells');",
+            "    pm.expect(jsonData.data.cells).to.be.an('array');",
+            "});"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      }
+    ],
+    "request": {
+      "method": "GET",
+      "header": [
+        {
+          "key": "Cookie",
+          "value": "accessToken={{access_token}}"
+        }
+      ],
+      "url": {
+        "raw": "{{base_url}}/v1/cms-rows/{{row_id}}",
+        "host": ["{{base_url}}"],
+        "path": ["v1", "cms-rows", "{{row_id}}"]
+      }
+    },
+    "response": []
+  },
+  {
+    "name": "Get Row by ID - Not Found",
+    "event": [
+      {
+        "listen": "prerequest",
+        "script": {
+          "exec": [
+            "if (!pm.environment.get('access_token')) {",
+            "    throw new Error('access_token is not set. Please run Auth folder first.');",
+            "}"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      },
+      {
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test('Status code is 400', function () {",
+            "    pm.expect(pm.response.code).to.equal(400);",
+            "});",
+            "",
+            "pm.test('Response has success property set to false', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.success).to.equal(false);",
+            "});"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      }
+    ],
+    "request": {
+      "method": "GET",
+      "header": [
+        {
+          "key": "Cookie",
+          "value": "accessToken={{access_token}}"
+        }
+      ],
+      "url": {
+        "raw": "{{base_url}}/v1/cms-rows/invalid-row-id",
+        "host": ["{{base_url}}"],
+        "path": ["v1", "cms-rows", "invalid-row-id"]
+      }
+    },
+    "response": []
+  },
+  {
+    "name": "Update Row - Success",
+    "event": [
+      {
+        "listen": "prerequest",
+        "script": {
+          "exec": [
+            "if (!pm.environment.get('access_token')) {",
+            "    throw new Error('access_token is not set. Please run Auth folder first.');",
+            "}"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      },
+      {
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test('Status code is 200', function () {",
+            "    pm.expect(pm.response.code).to.equal(200);",
+            "});",
+            "",
+            "pm.test('Response is JSON', function () {",
+            "    pm.response.to.be.json;",
+            "});",
+            "",
+            "pm.test('Response has success property set to true', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.success).to.equal(true);",
+            "});",
+            "",
+            "pm.test('Response has message', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.message).to.equal('Row updated successfully');",
+            "});",
+            "",
+            "pm.test('Response data contains row id', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.data).to.have.property('id');",
+            "});"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      }
+    ],
+    "request": {
+      "method": "PUT",
+      "header": [
+        {
+          "key": "Cookie",
+          "value": "accessToken={{access_token}}"
+        }
+      ],
+      "body": {
+        "mode": "raw",
+        "raw": "{}"
+      },
+      "url": {
+        "raw": "{{base_url}}/v1/cms-rows/{{row_id}}",
+        "host": ["{{base_url}}"],
+        "path": ["v1", "cms-rows", "{{row_id}}"]
+      }
+    },
+    "response": []
+  },
+  {
+    "name": "Update Row - Not Found",
+    "event": [
+      {
+        "listen": "prerequest",
+        "script": {
+          "exec": [
+            "if (!pm.environment.get('access_token')) {",
+            "    throw new Error('access_token is not set. Please run Auth folder first.');",
+            "}"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      },
+      {
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test('Status code is 400', function () {",
+            "    pm.expect(pm.response.code).to.equal(400);",
+            "});",
+            "",
+            "pm.test('Response has success property set to false', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.success).to.equal(false);",
+            "});"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      }
+    ],
+    "request": {
+      "method": "PUT",
+      "header": [
+        {
+          "key": "Cookie",
+          "value": "accessToken={{access_token}}"
+        }
+      ],
+      "body": {
+        "mode": "raw",
+        "raw": "{}"
+      },
+      "url": {
+        "raw": "{{base_url}}/v1/cms-rows/invalid-row-id",
+        "host": ["{{base_url}}"],
+        "path": ["v1", "cms-rows", "invalid-row-id"]
+      }
+    },
+    "response": []
+  },
+  {
+    "name": "Delete Row - Success",
+    "event": [
+      {
+        "listen": "prerequest",
+        "script": {
+          "exec": [
+            "if (!pm.environment.get('access_token')) {",
+            "    throw new Error('access_token is not set. Please run Auth folder first.');",
+            "}"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      },
+      {
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test('Status code is 200', function () {",
+            "    pm.expect(pm.response.code).to.equal(200);",
+            "});",
+            "",
+            "pm.test('Response is JSON', function () {",
+            "    pm.response.to.be.json;",
+            "});",
+            "",
+            "pm.test('Response has success property set to true', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.success).to.equal(true);",
+            "});",
+            "",
+            "pm.test('Response has message', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.message).to.equal('Row deleted successfully');",
+            "});"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      }
+    ],
+    "request": {
+      "method": "DELETE",
+      "header": [
+        {
+          "key": "Cookie",
+          "value": "accessToken={{access_token}}"
+        }
+      ],
+      "url": {
+        "raw": "{{base_url}}/v1/cms-rows/{{row_id_for_delete}}",
+        "host": ["{{base_url}}"],
+        "path": ["v1", "cms-rows", "{{row_id_for_delete}}"]
+      }
+    },
+    "response": []
+  },
+  {
+    "name": "Delete Row - Not Found",
+    "event": [
+      {
+        "listen": "prerequest",
+        "script": {
+          "exec": [
+            "if (!pm.environment.get('access_token')) {",
+            "    throw new Error('access_token is not set. Please run Auth folder first.');",
+            "}"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      },
+      {
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test('Status code is 400', function () {",
+            "    pm.expect(pm.response.code).to.equal(400);",
+            "});",
+            "",
+            "pm.test('Response has success property set to false', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.success).to.equal(false);",
+            "});"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      }
+    ],
+    "request": {
+      "method": "DELETE",
+      "header": [
+        {
+          "key": "Cookie",
+          "value": "accessToken={{access_token}}"
+        }
+      ],
+      "url": {
+        "raw": "{{base_url}}/v1/cms-rows/invalid-row-id",
+        "host": ["{{base_url}}"],
+        "path": ["v1", "cms-rows", "invalid-row-id"]
+      }
+    },
+    "response": []
+  }
+]

@@ -1,0 +1,154 @@
+name: CI - API Integration Testing (Newman)
+
+on:
+  push:
+    branches: [testing]
+  pull_request:
+    branches: [testing]
+
+jobs:
+  api-test:
+    name: Run Postman API Tests (Newman)
+    runs-on: ubuntu-latest
+
+    env:
+      DATABASE_URL: ${{ secrets.TEST_DATABASE_URL }}
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      FRONTEND_URL: ${{ secrets.FRONTEND_URL }}
+      ALLOWED_ORIGINS: ${{ secrets.FRONTEND_URL }}
+      NODE_ENV: test
+      GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+      GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+      GOOGLE_CALLBACK_URL: ${{ secrets.GOOGLE_CALLBACK_URL }}
+      CLOUDINARY_CLOUD_NAME: ${{ secrets.CLOUDINARY_CLOUD_NAME }}
+      CLOUDINARY_API_KEY: ${{ secrets.CLOUDINARY_API_KEY }}
+      CLOUDINARY_API_SECRET: ${{ secrets.CLOUDINARY_API_SECRET }}
+      COOKIE_CROSS_SITE: false
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Install Newman
+        run: npm install -g newman newman-reporter-htmlextra
+
+      - name: Merge Postman Collections
+        run: npm run postman:merge
+
+      # ============================================================
+      # Run API tests per folder using Newman
+      # Each folder runs sequentially (dependent on shared state)
+      # ============================================================
+
+      - name: "API Test: Auth (Register & Login)"
+        if: always()
+        run: |
+          newman run "postman/artifacts/API Testing Collection CMS.postman_collection.json" \
+            --environment "postman/environments/CMS API Environment.postman_environment.json" \
+            --env-var "password=SecurePassword123!" \
+            --folder "Auth" \
+            --reporters cli,htmlextra \
+            --reporter-htmlextra-export "newman-reports/01-auth-report.html" \
+            --export-environment "newman-reports/ci-env-state.json" \
+            --delay-request 100 \
+            --timeout-request 10000 \
+            --verbose
+
+      - name: "API Test: API Key"
+        if: always()
+        run: |
+          newman run "postman/artifacts/API Testing Collection CMS.postman_collection.json" \
+            --environment "newman-reports/ci-env-state.json" \
+            --folder "Apikey" \
+            --reporters cli,htmlextra \
+            --reporter-htmlextra-export "newman-reports/02-apikey-report.html" \
+            --export-environment "newman-reports/ci-env-state.json" \
+            --delay-request 100 \
+            --timeout-request 10000 \
+            --verbose
+
+      - name: "API Test: Projects"
+        if: always()
+        run: |
+          newman run "postman/artifacts/API Testing Collection CMS.postman_collection.json" \
+            --environment "newman-reports/ci-env-state.json" \
+            --folder "Projects" \
+            --reporters cli,htmlextra \
+            --reporter-htmlextra-export "newman-reports/03-projects-report.html" \
+            --export-environment "newman-reports/ci-env-state.json" \
+            --delay-request 100 \
+            --timeout-request 10000 \
+            --verbose
+
+      - name: "API Test: Tables"
+        if: always()
+        run: |
+          newman run "postman/artifacts/API Testing Collection CMS.postman_collection.json" \
+            --environment "newman-reports/ci-env-state.json" \
+            --folder "Tables" \
+            --reporters cli,htmlextra \
+            --reporter-htmlextra-export "newman-reports/04-tables-report.html" \
+            --export-environment "newman-reports/ci-env-state.json" \
+            --delay-request 100 \
+            --timeout-request 10000 \
+            --verbose
+
+      - name: "API Test: Columns"
+        if: always()
+        run: |
+          newman run "postman/artifacts/API Testing Collection CMS.postman_collection.json" \
+            --environment "newman-reports/ci-env-state.json" \
+            --folder "Columns" \
+            --reporters cli,htmlextra \
+            --reporter-htmlextra-export "newman-reports/05-columns-report.html" \
+            --export-environment "newman-reports/ci-env-state.json" \
+            --delay-request 100 \
+            --timeout-request 10000 \
+            --verbose
+
+      - name: "API Test: Rows"
+        if: always()
+        run: |
+          newman run "postman/artifacts/API Testing Collection CMS.postman_collection.json" \
+            --environment "newman-reports/ci-env-state.json" \
+            --folder "Rows" \
+            --reporters cli,htmlextra \
+            --reporter-htmlextra-export "newman-reports/06-rows-report.html" \
+            --export-environment "newman-reports/ci-env-state.json" \
+            --delay-request 100 \
+            --timeout-request 10000 \
+            --verbose
+
+      - name: "API Test: Cells"
+        if: always()
+        run: |
+          newman run "postman/artifacts/API Testing Collection CMS.postman_collection.json" \
+            --environment "newman-reports/ci-env-state.json" \
+            --folder "Cells" \
+            --reporters cli,htmlextra \
+            --reporter-htmlextra-export "newman-reports/07-cells-report.html" \
+            --export-environment "newman-reports/ci-env-state.json" \
+            --delay-request 100 \
+            --timeout-request 10000 \
+            --verbose
+
+      # ============================================================
+      # Upload reports & cleanup
+      # ============================================================
+
+      - name: Upload Newman HTML Reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: newman-api-test-reports
+          path: newman-reports/
+          retention-days: 30

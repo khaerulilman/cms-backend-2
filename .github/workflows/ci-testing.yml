@@ -1,0 +1,56 @@
+name: CI - Automated Testing
+
+on:
+  push:
+    branches: [testing]
+  pull_request:
+    branches: [testing]
+
+jobs:
+  test:
+    name: Run Vitest Tests
+    runs-on: ubuntu-latest
+
+    env:
+      DATABASE_URL: ${{ secrets.TEST_DATABASE_URL }}
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      FRONTEND_URL: ${{ secrets.FRONTEND_URL }}
+      ALLOWED_ORIGINS: ${{ secrets.FRONTEND_URL }}
+      NODE_ENV: test
+      GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+      GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+      GOOGLE_CALLBACK_URL: ${{ secrets.GOOGLE_CALLBACK_URL }}
+      CLOUDINARY_CLOUD_NAME: ${{ secrets.CLOUDINARY_CLOUD_NAME }}
+      CLOUDINARY_API_KEY: ${{ secrets.CLOUDINARY_API_KEY }}
+      CLOUDINARY_API_SECRET: ${{ secrets.CLOUDINARY_API_SECRET }}
+      COOKIE_CROSS_SITE: false
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: "npm"
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Push schema to test database
+        run: npx prisma db push --skip-generate
+
+      - name: Run tests with coverage
+        run: npx cross-env NODE_ENV=test vitest --run --coverage
+
+      - name: Upload coverage report
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: coverage-report
+          path: coverage/
+          retention-days: 30

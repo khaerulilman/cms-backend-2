@@ -1,0 +1,969 @@
+[
+  {
+    "name": "Create Project - Success",
+    "event": [
+      {
+        "listen": "prerequest",
+        "script": {
+          "exec": [
+            "// Generate unique project name",
+            "const timestamp = Date.now();",
+            "const projectName = `Test Project ${timestamp}`;",
+            "pm.environment.set('project_name', projectName);",
+            "",
+            "// Verify access_token is available",
+            "const accessToken = pm.environment.get('access_token');",
+            "",
+            "if (!accessToken) {",
+            "    console.error('ERROR: access_token not found in environment!');",
+            "    console.log('Available environment variables:', Object.keys(pm.environment.toObject()));",
+            "} else {",
+            "    console.log('Using access_token for project creation:', accessToken.substring(0, 30) + '...');",
+            "}"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      },
+      {
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test('Status code is 201', function () {",
+            "    pm.expect(pm.response.code).to.equal(201);",
+            "});",
+            "",
+            "pm.test('Response is JSON', function () {",
+            "    pm.response.to.be.json;",
+            "});",
+            "",
+            "pm.test('Response has success property', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.success).to.equal(true);",
+            "});",
+            "",
+            "pm.test('Response contains project data', function () {",
+            "    const jsonData = pm.response.json();",
+            "    const project = jsonData.data;",
+            "    ",
+            "    pm.expect(project).to.have.property('id');",
+            "    pm.expect(project).to.have.property('name');",
+            "    pm.expect(project).to.have.property('userId');",
+            "    pm.expect(project).to.have.property('description');",
+            "    pm.expect(project).to.have.property('createdAt');",
+            "    pm.expect(project).to.have.property('updatedAt');",
+            "});",
+            "",
+            "pm.test('Project name matches input', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.data.name).to.equal(pm.environment.get('project_name'));",
+            "});",
+            "",
+            "// Save first project ID for delete tests",
+            "if (pm.response.code === 201) {",
+            "    const firstProjectId = pm.response.json().data.id;",
+            "    pm.environment.set('project_id_for_delete', firstProjectId);",
+            "    ",
+            "    // Create second project for table and other tests",
+            "    const timestamp = Date.now();",
+            "    const secondProjectName = `Persistent Project ${timestamp}`;",
+            "    ",
+            "    pm.sendRequest({",
+            "        url: pm.environment.get('base_url') + '/v1/projects',",
+            "        method: 'POST',",
+            "        header: {",
+            "            'Content-Type': 'application/json',",
+            "            'Cookie': 'accessToken=' + pm.environment.get('access_token')",
+            "        },",
+            "        body: {",
+            "            mode: 'raw',",
+            "            raw: JSON.stringify({",
+            "                name: secondProjectName,",
+            "                description: 'Persistent project for table tests'",
+            "            })",
+            "        }",
+            "    }, function (err, response) {",
+            "        if (!err && response.code === 201) {",
+            "            const secondProjectId = response.json().data.id;",
+            "            pm.environment.set('project_id', secondProjectId);",
+            "            console.log('✅ Created 2 projects:');",
+            "            console.log('   - project_id_for_delete:', firstProjectId);",
+            "            console.log('   - project_id (persistent):', secondProjectId);",
+            "        }",
+            "    });",
+            "}"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      }
+    ],
+    "request": {
+      "method": "POST",
+      "header": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "key": "Cookie",
+          "value": "accessToken={{access_token}}",
+          "type": "text"
+        }
+      ],
+      "body": {
+        "mode": "raw",
+        "raw": "{\n    \"name\": \"{{project_name}}\",\n    \"description\": \"This is a test project for CMS\"\n}"
+      },
+      "url": {
+        "raw": "{{base_url}}/v1/projects",
+        "host": ["{{base_url}}"],
+        "path": ["v1", "projects"]
+      }
+    },
+    "response": []
+  },
+  {
+    "name": "Create Project - With Long Description",
+    "event": [
+      {
+        "listen": "prerequest",
+        "script": {
+          "exec": [
+            "const timestamp = Date.now();",
+            "const projectName = `Long Desc Project ${timestamp}`;",
+            "pm.environment.set('project_name_long', projectName);"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      },
+      {
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test('Status code is 201', function () {",
+            "    pm.expect(pm.response.code).to.equal(201);",
+            "});",
+            "",
+            "pm.test('Description is stored correctly', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.data.description).to.exist;",
+            "});"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      }
+    ],
+    "request": {
+      "method": "POST",
+      "header": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "key": "Cookie",
+          "value": "accessToken={{access_token}}",
+          "type": "text"
+        }
+      ],
+      "body": {
+        "mode": "raw",
+        "raw": "{\n    \"name\": \"{{project_name_long}}\",\n    \"description\": \"This is a comprehensive test project with a detailed description. It contains information about the project structure, goals, and implementation details for testing purposes.\"\n}"
+      },
+      "url": {
+        "raw": "{{base_url}}/v1/projects",
+        "host": ["{{base_url}}"],
+        "path": ["v1", "projects"]
+      }
+    },
+    "response": []
+  },
+  {
+    "name": "Create Project - Empty Name",
+    "event": [
+      {
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test('Status code is 400 or 422', function () {",
+            "    pm.expect(pm.response.code).to.be.oneOf([400, 422]);",
+            "});",
+            "",
+            "pm.test('Response contains error message', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.message || jsonData.error).to.exist;",
+            "});"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      }
+    ],
+    "request": {
+      "method": "POST",
+      "header": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "key": "Cookie",
+          "value": "accessToken={{access_token}}",
+          "type": "text"
+        }
+      ],
+      "body": {
+        "mode": "raw",
+        "raw": "{\n    \"name\": \"\",\n    \"description\": \"Project without name\"\n}"
+      },
+      "url": {
+        "raw": "{{base_url}}/v1/projects",
+        "host": ["{{base_url}}"],
+        "path": ["v1", "projects"]
+      }
+    },
+    "response": []
+  },
+  {
+    "name": "Create Project - Missing Name",
+    "event": [
+      {
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test('Status code is 400 or 422', function () {",
+            "    pm.expect(pm.response.code).to.be.oneOf([400, 422]);",
+            "});",
+            "",
+            "pm.test('Response indicates missing field', function () {",
+            "    const jsonData = pm.response.json();",
+            "    const message = (jsonData.message || '').toLowerCase();",
+            "    pm.expect(message).to.include('required') || pm.expect(message).to.include('name');",
+            "});"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      }
+    ],
+    "request": {
+      "method": "POST",
+      "header": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "key": "Cookie",
+          "value": "accessToken={{access_token}}",
+          "type": "text"
+        }
+      ],
+      "body": {
+        "mode": "raw",
+        "raw": "{\n    \"description\": \"Project without name field\"\n}"
+      },
+      "url": {
+        "raw": "{{base_url}}/v1/projects",
+        "host": ["{{base_url}}"],
+        "path": ["v1", "projects"]
+      }
+    },
+    "response": []
+  },
+  {
+    "name": "Create Project - Whitespace Only Name",
+    "event": [
+      {
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test('Status code is 400 or 422', function () {",
+            "    pm.expect(pm.response.code).to.be.oneOf([400, 422]);",
+            "});"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      }
+    ],
+    "request": {
+      "method": "POST",
+      "header": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "key": "Cookie",
+          "value": "accessToken={{access_token}}",
+          "type": "text"
+        }
+      ],
+      "body": {
+        "mode": "raw",
+        "raw": "{\n    \"name\": \"   \",\n    \"description\": \"Test with whitespace only name\"\n}"
+      },
+      "url": {
+        "raw": "{{base_url}}/v1/projects",
+        "host": ["{{base_url}}"],
+        "path": ["v1", "projects"]
+      }
+    },
+    "response": []
+  },
+  {
+    "name": "Get All User Projects - Success",
+    "event": [
+      {
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test('Status code is 200', function () {",
+            "    pm.expect(pm.response.code).to.equal(200);",
+            "});",
+            "",
+            "pm.test('Response is JSON', function () {",
+            "    pm.response.to.be.json;",
+            "});",
+            "",
+            "pm.test('Response has success property', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.success).to.equal(true);",
+            "});",
+            "",
+            "pm.test('Response contains projects array', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.data).to.be.an('array');",
+            "});",
+            "",
+            "pm.test('Response time is less than 2000ms', function () {",
+            "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+            "});"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      }
+    ],
+    "request": {
+      "method": "GET",
+      "header": [
+        {
+          "key": "Cookie",
+          "value": "accessToken={{access_token}}",
+          "type": "text"
+        }
+      ],
+      "url": {
+        "raw": "{{base_url}}/v1/projects",
+        "host": ["{{base_url}}"],
+        "path": ["v1", "projects"]
+      }
+    },
+    "response": []
+  },
+  {
+    "name": "Get Project - Success",
+    "event": [
+      {
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test('Status code is 200', function () {",
+            "    pm.expect(pm.response.code).to.equal(200);",
+            "});",
+            "",
+            "pm.test('Response has success property', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.success).to.equal(true);",
+            "});",
+            "",
+            "pm.test('Response contains project data', function () {",
+            "    const jsonData = pm.response.json();",
+            "    const project = jsonData.data;",
+            "    ",
+            "    pm.expect(project).to.have.property('id');",
+            "    pm.expect(project).to.have.property('name');",
+            "    pm.expect(project).to.have.property('userId');",
+            "    pm.expect(project).to.have.property('cmsTables');",
+            "});",
+            "",
+            "pm.test('cmsTables is array', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.data.cmsTables).to.be.an('array');",
+            "});"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      }
+    ],
+    "request": {
+      "method": "GET",
+      "header": [
+        {
+          "key": "Cookie",
+          "value": "accessToken={{access_token}}",
+          "type": "text"
+        }
+      ],
+      "url": {
+        "raw": "{{base_url}}/v1/projects/{{project_id}}",
+        "host": ["{{base_url}}"],
+        "path": ["v1", "projects", "{{project_id}}"]
+      }
+    },
+    "response": []
+  },
+  {
+    "name": "Get Project - Invalid Project ID",
+    "event": [
+      {
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test('Status code is 422', function () {",
+            "    pm.expect(pm.response.code).to.equal(422);",
+            "});",
+            "",
+            "pm.test('Response indicates not found', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.message || jsonData.error).to.exist;",
+            "});"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      }
+    ],
+    "request": {
+      "method": "GET",
+      "header": [
+        {
+          "key": "Cookie",
+          "value": "accessToken={{access_token}}",
+          "type": "text"
+        }
+      ],
+      "url": {
+        "raw": "{{base_url}}/v1/projects/invalid-project-id-12345",
+        "host": ["{{base_url}}"],
+        "path": ["v1", "projects", "invalid-project-id-12345"]
+      }
+    },
+    "response": []
+  },
+  {
+    "name": "Get Project - Other User's Project",
+    "event": [
+      {
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test('Status code is 422', function () {",
+            "    pm.expect(pm.response.code).to.equal(422);",
+            "});",
+            "",
+            "pm.test('Response does not expose project data', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.data).to.be.undefined;",
+            "});"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      }
+    ],
+    "request": {
+      "method": "GET",
+      "header": [
+        {
+          "key": "Cookie",
+          "value": "accessToken={{access_token}}",
+          "type": "text"
+        }
+      ],
+      "url": {
+        "raw": "{{base_url}}/v1/projects/other-user-project-id",
+        "host": ["{{base_url}}"],
+        "path": ["v1", "projects", "other-user-project-id"]
+      }
+    },
+    "response": []
+  },
+  {
+    "name": "Update Project - Success",
+    "event": [
+      {
+        "listen": "prerequest",
+        "script": {
+          "exec": [
+            "const timestamp = Date.now();",
+            "const updatedName = `Updated Project ${timestamp}`;",
+            "pm.environment.set('updated_project_name', updatedName);"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      },
+      {
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test('Status code is 200', function () {",
+            "    pm.expect(pm.response.code).to.equal(200);",
+            "});",
+            "",
+            "pm.test('Response has success property', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.success).to.equal(true);",
+            "});",
+            "",
+            "pm.test('Project name is updated', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.data.name).to.equal(pm.environment.get('updated_project_name'));",
+            "});",
+            "",
+            "pm.test('Project description is updated', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.data.description).to.include('Updated description');",
+            "});"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      }
+    ],
+    "request": {
+      "method": "PUT",
+      "header": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "key": "Cookie",
+          "value": "accessToken={{access_token}}",
+          "type": "text"
+        }
+      ],
+      "body": {
+        "mode": "raw",
+        "raw": "{\n    \"name\": \"{{updated_project_name}}\",\n    \"description\": \"Updated description for the project\"\n}"
+      },
+      "url": {
+        "raw": "{{base_url}}/v1/projects/{{project_id}}",
+        "host": ["{{base_url}}"],
+        "path": ["v1", "projects", "{{project_id}}"]
+      }
+    },
+    "response": []
+  },
+  {
+    "name": "Update Project - Only Name",
+    "event": [
+      {
+        "listen": "prerequest",
+        "script": {
+          "exec": [
+            "const timestamp = Date.now();",
+            "const nameOnly = `Name Only ${timestamp}`;",
+            "pm.environment.set('name_only', nameOnly);"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      },
+      {
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test('Status code is 200', function () {",
+            "    pm.expect(pm.response.code).to.equal(200);",
+            "});",
+            "",
+            "pm.test('Project name is updated', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.data.name).to.equal(pm.environment.get('name_only'));",
+            "});"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      }
+    ],
+    "request": {
+      "method": "PUT",
+      "header": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "key": "Cookie",
+          "value": "accessToken={{access_token}}",
+          "type": "text"
+        }
+      ],
+      "body": {
+        "mode": "raw",
+        "raw": "{\n    \"name\": \"{{name_only}}\"\n}"
+      },
+      "url": {
+        "raw": "{{base_url}}/v1/projects/{{project_id}}",
+        "host": ["{{base_url}}"],
+        "path": ["v1", "projects", "{{project_id}}"]
+      }
+    },
+    "response": []
+  },
+  {
+    "name": "Update Project - Empty Name",
+    "event": [
+      {
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test('Status code is 400 or 422', function () {",
+            "    pm.expect(pm.response.code).to.be.oneOf([400, 422]);",
+            "});",
+            "",
+            "pm.test('Response contains validation error', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.message || jsonData.error).to.exist;",
+            "});"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      }
+    ],
+    "request": {
+      "method": "PUT",
+      "header": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "key": "Cookie",
+          "value": "accessToken={{access_token}}",
+          "type": "text"
+        }
+      ],
+      "body": {
+        "mode": "raw",
+        "raw": "{\n    \"name\": \"\"\n}"
+      },
+      "url": {
+        "raw": "{{base_url}}/v1/projects/{{project_id}}",
+        "host": ["{{base_url}}"],
+        "path": ["v1", "projects", "{{project_id}}"]
+      }
+    },
+    "response": []
+  },
+  {
+    "name": "Update Project - Description Too Long",
+    "event": [
+      {
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test('Status code is 400 or 422', function () {",
+            "    pm.expect(pm.response.code).to.be.oneOf([400, 422]);",
+            "});",
+            "",
+            "pm.test('Response indicates validation error', function () {",
+            "    const jsonData = pm.response.json();",
+            "    const message = (jsonData.message || '').toLowerCase();",
+            "    pm.expect(message).to.include('exceed') || pm.expect(message).to.include('long') || pm.expect(message).to.include('description');",
+            "});"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      }
+    ],
+    "request": {
+      "method": "PUT",
+      "header": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "key": "Cookie",
+          "value": "accessToken={{access_token}}",
+          "type": "text"
+        }
+      ],
+      "body": {
+        "mode": "raw",
+        "raw": "{\n    \"name\": \"Valid Name\",\n    \"description\": \"Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident sunt in culpa qui officia deserunt mollit anim id est laborum. Lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor.\"\n}"
+      },
+      "url": {
+        "raw": "{{base_url}}/v1/projects/{{project_id}}",
+        "host": ["{{base_url}}"],
+        "path": ["v1", "projects", "{{project_id}}"]
+      }
+    },
+    "response": []
+  },
+  {
+    "name": "Update Project - Invalid Project ID",
+    "event": [
+      {
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test('Status code is 422', function () {",
+            "    pm.expect(pm.response.code).to.equal(422);",
+            "});"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      }
+    ],
+    "request": {
+      "method": "PUT",
+      "header": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "key": "Cookie",
+          "value": "accessToken={{access_token}}",
+          "type": "text"
+        }
+      ],
+      "body": {
+        "mode": "raw",
+        "raw": "{\n    \"name\": \"Test Project\"\n}"
+      },
+      "url": {
+        "raw": "{{base_url}}/v1/projects/invalid-id-xyz",
+        "host": ["{{base_url}}"],
+        "path": ["v1", "projects", "invalid-id-xyz"]
+      }
+    },
+    "response": []
+  },
+  {
+    "name": "Update Project - Other User's Project",
+    "event": [
+      {
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test('Status code is 422', function () {",
+            "    pm.expect(pm.response.code).to.equal(422);",
+            "});"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      }
+    ],
+    "request": {
+      "method": "PUT",
+      "header": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "key": "Cookie",
+          "value": "accessToken={{access_token}}",
+          "type": "text"
+        }
+      ],
+      "body": {
+        "mode": "raw",
+        "raw": "{\n    \"name\": \"Attempting to update other's project\"\n}"
+      },
+      "url": {
+        "raw": "{{base_url}}/v1/projects/other-user-project-id",
+        "host": ["{{base_url}}"],
+        "path": ["v1", "projects", "other-user-project-id"]
+      }
+    },
+    "response": []
+  },
+  {
+    "name": "Delete Project - Success",
+    "event": [
+      {
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test('Status code is 200', function () {",
+            "    pm.expect(pm.response.code).to.equal(200);",
+            "});",
+            "",
+            "pm.test('Response has success property', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.success).to.equal(true);",
+            "});",
+            "",
+            "pm.test('Response contains success message', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.message).to.include('deleted');",
+            "});"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      }
+    ],
+    "request": {
+      "method": "DELETE",
+      "header": [
+        {
+          "key": "Cookie",
+          "value": "accessToken={{access_token}}",
+          "type": "text"
+        }
+      ],
+      "url": {
+        "raw": "{{base_url}}/v1/projects/{{project_id_for_delete}}",
+        "host": ["{{base_url}}"],
+        "path": ["v1", "projects", "{{project_id_for_delete}}"]
+      }
+    },
+    "response": []
+  },
+  {
+    "name": "Delete Project - Invalid Project ID",
+    "event": [
+      {
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test('Status code is 422', function () {",
+            "    pm.expect(pm.response.code).to.equal(422);",
+            "});"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      }
+    ],
+    "request": {
+      "method": "DELETE",
+      "header": [
+        {
+          "key": "Cookie",
+          "value": "accessToken={{access_token}}",
+          "type": "text"
+        }
+      ],
+      "url": {
+        "raw": "{{base_url}}/v1/projects/invalid-id-abc",
+        "host": ["{{base_url}}"],
+        "path": ["v1", "projects", "invalid-id-abc"]
+      }
+    },
+    "response": []
+  },
+  {
+    "name": "Delete Project - Other User's Project",
+    "event": [
+      {
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test('Status code is 422', function () {",
+            "    pm.expect(pm.response.code).to.equal(422);",
+            "});"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      }
+    ],
+    "request": {
+      "method": "DELETE",
+      "header": [
+        {
+          "key": "Cookie",
+          "value": "accessToken={{access_token}}",
+          "type": "text"
+        }
+      ],
+      "url": {
+        "raw": "{{base_url}}/v1/projects/other-user-project-id",
+        "host": ["{{base_url}}"],
+        "path": ["v1", "projects", "other-user-project-id"]
+      }
+    },
+    "response": []
+  },
+  {
+    "name": "Delete Project - Already Deleted",
+    "event": [
+      {
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test('Status code is 404', function () {",
+            "    pm.expect(pm.response.code).to.equal(404);",
+            "});",
+            "",
+            "pm.test('Response indicates project not found', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.message || jsonData.error).to.exist;",
+            "});"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      }
+    ],
+    "request": {
+      "method": "DELETE",
+      "header": [
+        {
+          "key": "Cookie",
+          "value": "accessToken={{access_token}}",
+          "type": "text"
+        }
+      ],
+      "url": {
+        "raw": "{{base_url}}/v1/projects/{{project_id_for_delete}}",
+        "host": ["{{base_url}}"],
+        "path": ["v1", "projects", "{{project_id_for_delete}}"]
+      }
+    },
+    "response": []
+  }
+]

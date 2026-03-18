@@ -1,0 +1,415 @@
+[
+  {
+    "name": "Login - Success",
+    "event": [
+      {
+        "listen": "prerequest",
+        "script": {
+          "exec": [""],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      },
+      {
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test('Status code is 200', function () {",
+            "    pm.expect(pm.response.code).to.equal(200);",
+            "});",
+            "",
+            "pm.test('Response time is less than 2000ms', function () {",
+            "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+            "});",
+            "",
+            "pm.test('Response is JSON', function () {",
+            "    pm.response.to.be.json;",
+            "});",
+            "",
+            "pm.test('Response contains success message', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.success).to.be.true;",
+            "    pm.expect(jsonData.message).to.not.be.undefined;",
+            "});",
+            "",
+            "// Extract tokens from Set-Cookie headers",
+            "if (pm.response.code === 200) {",
+            "    const jsonData = pm.response.json();",
+            "    ",
+            "    // Get all headers and find Set-Cookie headers",
+            "    const allHeaders = pm.response.headers.all();",
+            "    console.log('Total headers:', allHeaders.length);",
+            "    ",
+            "    let accessToken = null;",
+            "    let refreshToken = null;",
+            "    ",
+            "    allHeaders.forEach(header => {",
+            "        if (header.key && header.key.toLowerCase() === 'set-cookie') {",
+            "            const cookieValue = header.value;",
+            "            console.log('Found Set-Cookie:', cookieValue.substring(0, 50) + '...');",
+            "            ",
+            "            // Extract accessToken",
+            "            if (cookieValue.includes('accessToken=')) {",
+            "                const match = cookieValue.match(/accessToken=([^;\\s]+)/);",
+            "                if (match && match[1]) {",
+            "                    accessToken = match[1];",
+            "                    console.log('Extracted accessToken:', accessToken.substring(0, 30) + '...');",
+            "                }",
+            "            }",
+            "            ",
+            "            // Extract refreshToken",
+            "            if (cookieValue.includes('refreshToken=')) {",
+            "                const match = cookieValue.match(/refreshToken=([^;\\s]+)/);",
+            "                if (match && match[1]) {",
+            "                    refreshToken = match[1];",
+            "                    console.log('Extracted refreshToken:', refreshToken.substring(0, 30) + '...');",
+            "                }",
+            "            }",
+            "        }",
+            "    });",
+            "    ",
+            "    // Save tokens to environment",
+            "    if (accessToken) {",
+            "        pm.environment.set('access_token', accessToken);",
+            "        console.log('✓ access_token saved to environment');",
+            "    } else {",
+            "        console.log('✗ WARNING: accessToken not found in Set-Cookie headers!');",
+            "    }",
+            "    ",
+            "    if (refreshToken) {",
+            "        pm.environment.set('refresh_token', refreshToken);",
+            "        console.log('✓ refresh_token saved to environment');",
+            "    }",
+            "    ",
+            "    // Save user ID",
+            "    if (jsonData.data && jsonData.data.user) {",
+            "        pm.environment.set('user_id', jsonData.data.user.id);",
+            "        console.log('✓ user_id saved:', jsonData.data.user.id);",
+            "    }",
+            "}"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      }
+    ],
+    "request": {
+      "method": "POST",
+      "header": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mode": "raw",
+        "raw": "{\n    \"email\": \"{{random_email}}\",\n    \"password\": \"{{password}}\"\n}"
+      },
+      "url": {
+        "raw": "{{base_url}}/v1/auth/login",
+        "host": ["{{base_url}}"],
+        "path": ["v1", "auth", "login"]
+      }
+    },
+    "response": []
+  },
+  {
+    "name": "Login - Invalid Email",
+    "event": [
+      {
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test('Status code is 401 or 400', function () {",
+            "    pm.expect(pm.response.code).to.be.oneOf([400, 401]);",
+            "});",
+            "",
+            "pm.test('Response contains error message', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.success).to.be.false;",
+            "    pm.expect(jsonData.message || jsonData.error).to.not.be.undefined;",
+            "});"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      }
+    ],
+    "request": {
+      "method": "POST",
+      "header": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mode": "raw",
+        "raw": "{\n    \"email\": \"nonexistent@example.com\",\n    \"password\": \"TestPassword123!\"\n}"
+      },
+      "url": {
+        "raw": "{{base_url}}/v1/auth/login",
+        "host": ["{{base_url}}"],
+        "path": ["v1", "auth", "login"]
+      }
+    },
+    "response": []
+  },
+  {
+    "name": "Login - Invalid Password",
+    "event": [
+      {
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test('Status code is 401 or 400', function () {",
+            "    pm.expect(pm.response.code).to.be.oneOf([400, 401]);",
+            "});",
+            "",
+            "pm.test('Response indicates invalid credentials', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.success).to.be.false;",
+            "    const responseText = jsonData.message.toLowerCase();",
+            "    pm.expect(responseText).to.include('invalid') || pm.expect(responseText).to.include('credentials');",
+            "});"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      }
+    ],
+    "request": {
+      "method": "POST",
+      "header": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mode": "raw",
+        "raw": "{\n    \"email\": \"{{random_email}}\",\n    \"password\": \"WrongPassword123!\"\n}"
+      },
+      "url": {
+        "raw": "{{base_url}}/v1/auth/login",
+        "host": ["{{base_url}}"],
+        "path": ["v1", "auth", "login"]
+      }
+    },
+    "response": []
+  },
+  {
+    "name": "Login - Missing Email",
+    "event": [
+      {
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test('Status code is 400 or 422', function () {",
+            "    pm.expect(pm.response.code).to.be.oneOf([400, 422]);",
+            "});",
+            "",
+            "pm.test('Response contains validation error', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.message || jsonData.error).to.not.be.undefined;",
+            "});"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      }
+    ],
+    "request": {
+      "method": "POST",
+      "header": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mode": "raw",
+        "raw": "{\n    \"password\": \"TestPassword123!\"\n}"
+      },
+      "url": {
+        "raw": "{{base_url}}/v1/auth/login",
+        "host": ["{{base_url}}"],
+        "path": ["v1", "auth", "login"]
+      }
+    },
+    "response": []
+  },
+  {
+    "name": "Login - Missing Password",
+    "event": [
+      {
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test('Status code is 400 or 422', function () {",
+            "    pm.expect(pm.response.code).to.be.oneOf([400, 422]);",
+            "});",
+            "",
+            "pm.test('Response contains validation error', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.message || jsonData.error).to.not.be.undefined;",
+            "});"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      }
+    ],
+    "request": {
+      "method": "POST",
+      "header": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mode": "raw",
+        "raw": "{\n    \"email\": \"test@example.com\"\n}"
+      },
+      "url": {
+        "raw": "{{base_url}}/v1/auth/login",
+        "host": ["{{base_url}}"],
+        "path": ["v1", "auth", "login"]
+      }
+    },
+    "response": []
+  },
+  {
+    "name": "Login - Missing Fields",
+    "event": [
+      {
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test('Status code is 400 or 422', function () {",
+            "    pm.expect(pm.response.code).to.be.oneOf([400, 422]);",
+            "});",
+            "",
+            "pm.test('Response contains validation error', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.message || jsonData.error).to.not.be.undefined;",
+            "});"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      }
+    ],
+    "request": {
+      "method": "POST",
+      "header": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mode": "raw",
+        "raw": "{}"
+      },
+      "url": {
+        "raw": "{{base_url}}/v1/auth/login",
+        "host": ["{{base_url}}"],
+        "path": ["v1", "auth", "login"]
+      }
+    },
+    "response": []
+  },
+  {
+    "name": "Login - Invalid Email Format",
+    "event": [
+      {
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test('Status code is 400 or 422', function () {",
+            "    pm.expect(pm.response.code).to.be.oneOf([400, 422]);",
+            "});",
+            "",
+            "pm.test('Response indicates validation error', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.message || jsonData.error).to.not.be.undefined;",
+            "});"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      }
+    ],
+    "request": {
+      "method": "POST",
+      "header": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mode": "raw",
+        "raw": "{\n    \"email\": \"invalid-email-format\",\n    \"password\": \"TestPassword123!\"\n}"
+      },
+      "url": {
+        "raw": "{{base_url}}/v1/auth/login",
+        "host": ["{{base_url}}"],
+        "path": ["v1", "auth", "login"]
+      }
+    },
+    "response": []
+  },
+  {
+    "name": "Login - SQL Injection Test",
+    "event": [
+      {
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test('Request is handled properly', function () {",
+            "    pm.expect(pm.response.code).to.be.oneOf([200, 400, 401, 422, 500]);",
+            "});",
+            "",
+            "pm.test('No database details exposed', function () {",
+            "    const responseText = pm.response.text().toLowerCase();",
+            "    pm.expect(responseText).to.not.include('sql');",
+            "    pm.expect(responseText).to.not.include('database');",
+            "    pm.expect(responseText).to.not.include('mysql');",
+            "});"
+          ],
+          "type": "text/javascript"
+        }
+      }
+    ],
+    "request": {
+      "method": "POST",
+      "header": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mode": "raw",
+        "raw": "{\n    \"email\": \"test@example.com' OR '1'='1\",\n    \"password\": \"password' OR '1'='1\"\n}"
+      },
+      "url": {
+        "raw": "{{base_url}}/v1/auth/login",
+        "host": ["{{base_url}}"],
+        "path": ["v1", "auth", "login"]
+      }
+    },
+    "response": []
+  }
+]

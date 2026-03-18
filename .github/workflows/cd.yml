@@ -1,0 +1,62 @@
+name: CD - Deploy to EC2
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy to EC2
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to EC2 via SSH
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: 22
+          script_stop: true
+          script: |
+            echo "========== Starting deployment =========="
+
+            cd ~
+
+            # Clone once if not exists
+            if [ ! -d "cms-backend/.git" ]; then
+              echo "Cloning repository..."
+              git clone git@github.com:khaerulilman/cms-backend.git cms-backend
+            fi
+
+            cd ~/cms-backend || exit 1
+
+            echo "Pulling latest changes..."
+            git fetch origin
+            git checkout main
+            git reset --hard origin/main
+
+            echo "Installing production dependencies..."
+            npm install --omit=dev
+
+            echo "Generating Prisma Client..."
+            npx prisma generate
+
+            echo "Running database migrations..."
+            npx prisma migrate deploy
+
+            echo "Reloading application with PM2..."
+            pm2 reload portfolio-cms --update-env || \
+            pm2 start ecosystem.config.cjs --only portfolio-cms --env production
+
+            echo "Saving PM2 configuration..."
+            pm2 save
+
+            echo "Checking PM2 status..."
+            pm2 list
+
+            echo "========== Deployment complete =========="

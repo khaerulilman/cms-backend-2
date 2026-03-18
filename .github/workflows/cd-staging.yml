@@ -1,0 +1,65 @@
+name: CD - Deploy to EC2 (Staging)
+
+on:
+  push:
+    branches: [staging]
+  workflow_dispatch:
+
+jobs:
+  deploy:
+    name: Deploy to EC2 (Staging)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Deploy to EC2 via SSH (Staging)
+        uses: appleboy/ssh-action@v1
+        with:
+          host: ${{ secrets.EC2_HOST }}
+          username: ${{ secrets.EC2_USERNAME }}
+          key: ${{ secrets.EC2_SSH_KEY }}
+          port: 22
+          script_stop: true
+          script: |
+            echo "========== Starting staging deployment =========="
+
+            cd ~
+
+            # Clone once if not exists
+            if [ ! -d "cms-backend-staging/.git" ]; then
+              echo "Cloning repository for staging..."
+              git clone git@github.com:khaerulilman/cms-backend.git cms-backend-staging
+            fi
+
+            cd ~/cms-backend-staging || exit 1
+
+            echo "Pulling latest changes from staging branch..."
+            git fetch origin
+            git checkout staging
+            git reset --hard origin/staging
+
+            echo "Installing all dependencies (including dev)..."
+            npm install
+
+            echo "Generating Prisma Client..."
+            npx prisma generate
+
+            echo "Running database migrations..."
+            npx prisma migrate deploy
+
+            echo "Stopping existing staging PM2 process..."
+            pm2 stop portfolio-cms-staging 2>/dev/null || true
+            pm2 delete portfolio-cms-staging 2>/dev/null || true
+
+            echo "Starting staging application with PM2 on port 4001..."
+            pm2 start ecosystem.config.cjs --only portfolio-cms-staging --env staging
+
+            echo "Saving PM2 configuration..."
+            pm2 save
+
+            echo "Checking PM2 status..."
+            pm2 list
+
+            echo "========== Staging deployment complete =========="

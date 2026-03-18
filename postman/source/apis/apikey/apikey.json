@@ -1,0 +1,198 @@
+[
+  {
+    "name": "Generate API Key",
+    "event": [
+      {
+        "listen": "prerequest",
+        "script": {
+          "exec": [
+            "// Verify access_token is available",
+            "const accessToken = pm.environment.get('access_token');",
+            "",
+            "if (!accessToken) {",
+            "    console.error('ERROR: access_token not found in environment!');",
+            "    console.log('Available environment variables:', Object.keys(pm.environment.toObject()));",
+            "} else {",
+            "    console.log('Using access_token:', accessToken.substring(0, 30) + '...');",
+            "    console.log('Token length:', accessToken.length);",
+            "}"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      },
+      {
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test('Status code is 201', function () {",
+            "    pm.expect(pm.response.code).to.equal(201);",
+            "});",
+            "",
+            "pm.test('Response is JSON', function () {",
+            "    pm.response.to.be.json;",
+            "});",
+            "",
+            "pm.test('Response contains success message', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.success).to.equal(true);",
+            "    pm.expect(jsonData.message).to.exist;",
+            "});",
+            "",
+            "pm.test('Response contains API Key data', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.data).to.exist;",
+            "    pm.expect(jsonData.data.id).to.exist;",
+            "    pm.expect(jsonData.data.apiKey).to.exist;",
+            "    pm.expect(jsonData.data.createdAt).to.exist;",
+            "});",
+            "",
+            "// Save API Key to environment for other tests",
+            "if (pm.response.code === 201) {",
+            "    const jsonData = pm.response.json();",
+            "    pm.environment.set('api_key', jsonData.data.apiKey);",
+            "    pm.environment.set('api_key_id', jsonData.data.id);",
+            "}"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      }
+    ],
+    "request": {
+      "method": "POST",
+      "header": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        },
+        {
+          "key": "Cookie",
+          "value": "accessToken={{access_token}}",
+          "type": "text"
+        }
+      ],
+      "body": {
+        "mode": "raw",
+        "raw": ""
+      },
+      "url": {
+        "raw": "{{base_url}}/v1/apikey",
+        "host": ["{{base_url}}"],
+        "path": ["v1", "apikey"]
+      }
+    },
+    "response": []
+  },
+  {
+    "name": "Get All API Keys",
+    "event": [
+      {
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test('Status code is 200', function () {",
+            "    pm.expect(pm.response.code).to.equal(200);",
+            "});",
+            "",
+            "pm.test('Response is JSON', function () {",
+            "    pm.response.to.be.json;",
+            "});",
+            "",
+            "pm.test('Response contains success message', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.success).to.equal(true);",
+            "    pm.expect(jsonData.message).to.exist;",
+            "});",
+            "",
+            "pm.test('Response contains API Keys array', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.data).to.exist;",
+            "    pm.expect(jsonData.data.apiKeys).to.be.an('array');",
+            "    pm.expect(jsonData.data.total).to.exist;",
+            "});",
+            "",
+            "pm.test('API Keys are properly masked', function () {",
+            "    const jsonData = pm.response.json();",
+            "    if (jsonData.data.apiKeys.length > 0) {",
+            "        const apiKey = jsonData.data.apiKeys[0].apiKey;",
+            "        pm.expect(apiKey).to.include('*');",
+            "    }",
+            "});"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      }
+    ],
+    "request": {
+      "method": "GET",
+      "header": [
+        {
+          "key": "Cookie",
+          "value": "accessToken={{access_token}}",
+          "type": "text"
+        }
+      ],
+      "url": {
+        "raw": "{{base_url}}/v1/apikey",
+        "host": ["{{base_url}}"],
+        "path": ["v1", "apikey"]
+      }
+    },
+    "response": []
+  },
+  {
+    "name": "Delete API Key",
+    "event": [
+      {
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test('Status code is 200', function () {",
+            "    pm.expect(pm.response.code).to.equal(200);",
+            "});",
+            "",
+            "pm.test('Response is JSON', function () {",
+            "    pm.response.to.be.json;",
+            "});",
+            "",
+            "pm.test('Response contains success message', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.success).to.equal(true);",
+            "    pm.expect(jsonData.message).to.exist;",
+            "});",
+            "",
+            "pm.test('Response contains deleted API Key ID', function () {",
+            "    const jsonData = pm.response.json();",
+            "    pm.expect(jsonData.data).to.exist;",
+            "    pm.expect(jsonData.data.deletedId).to.exist;",
+            "});"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      }
+    ],
+    "request": {
+      "method": "DELETE",
+      "header": [
+        {
+          "key": "Cookie",
+          "value": "accessToken={{access_token}}",
+          "type": "text"
+        }
+      ],
+      "url": {
+        "raw": "{{base_url}}/v1/apikey/{{api_key_id}}",
+        "host": ["{{base_url}}"],
+        "path": ["v1", "apikey", "{{api_key_id}}"]
+      }
+    },
+    "response": []
+  }
+]

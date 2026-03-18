@@ -1,0 +1,461 @@
+[
+  {
+    "name": "Register - Success",
+    "event": [
+      {
+        "listen": "prerequest",
+        "script": {
+          "exec": [
+            "// Generate unique email (timestamp + random)",
+            "const timestamp = Date.now();",
+            "const randomNum = Math.floor(Math.random() * 10000);",
+            "",
+            "const randomEmail = `user${timestamp}${randomNum}@example.com`;",
+            "pm.environment.set('random_email', randomEmail);",
+            "",
+            "// Generate random name",
+            "const names = ['John Doe', 'Jane Smith', 'Bob Johnson', 'Alice Williams'];",
+            "const randomName = names[Math.floor(Math.random() * names.length)];",
+            "",
+            "pm.environment.set('random_name', randomName);",
+            ""
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      },
+      {
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test('Status code is 200 or 201', function () {",
+            "    pm.expect(pm.response.code).to.be.oneOf([200, 201]);",
+            "});",
+            "",
+            "pm.test('Response time is less than 2000ms', function () {",
+            "    pm.expect(pm.response.responseTime).to.be.below(2000);",
+            "});",
+            "",
+            "pm.test('Response is JSON', function () {",
+            "    pm.response.to.be.json;",
+            "});",
+            "",
+            "// Extract tokens from Set-Cookie headers (same as Login)",
+            "if (pm.response.code === 200 || pm.response.code === 201) {",
+            "    const jsonData = pm.response.json();",
+            "    ",
+            "    // Get all headers and find Set-Cookie headers",
+            "    const allHeaders = pm.response.headers.all();",
+            "    let accessToken = null;",
+            "    let refreshToken = null;",
+            "    ",
+            "    allHeaders.forEach(header => {",
+            "        if (header.key && header.key.toLowerCase() === 'set-cookie') {",
+            "            const cookieValue = header.value;",
+            "            ",
+            "            // Extract accessToken",
+            "            if (cookieValue.includes('accessToken=')) {",
+            "                const match = cookieValue.match(/accessToken=([^;\\s]+)/);",
+            "                if (match && match[1]) {",
+            "                    accessToken = match[1];",
+            "                }",
+            "            }",
+            "            ",
+            "            // Extract refreshToken",
+            "            if (cookieValue.includes('refreshToken=')) {",
+            "                const match = cookieValue.match(/refreshToken=([^;\\s]+)/);",
+            "                if (match && match[1]) {",
+            "                    refreshToken = match[1];",
+            "                }",
+            "            }",
+            "        }",
+            "    });",
+            "    ",
+            "    // Save tokens to environment",
+            "    if (accessToken) {",
+            "        pm.environment.set('access_token', accessToken);",
+            "    }",
+            "    ",
+            "    if (refreshToken) {",
+            "        pm.environment.set('refresh_token', refreshToken);",
+            "    }",
+            "    ",
+            "    // Save user data",
+            "    if (jsonData.data && jsonData.data.user) {",
+            "        pm.environment.set('user_id', jsonData.data.user.id);",
+            "    }",
+            "}"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      }
+    ],
+    "request": {
+      "method": "POST",
+      "header": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mode": "raw",
+        "raw": "{\n    \"name\": \"{{random_name}}\",\n    \"email\": \"{{random_email}}\",\n    \"password\": \"{{password}}\"\n}"
+      },
+      "url": {
+        "raw": "{{base_url}}/v1/auth/register",
+        "host": ["{{base_url}}"],
+        "path": ["v1", "auth", "register"]
+      }
+    },
+    "response": []
+  },
+  {
+    "name": "Register - Invalid Email",
+    "event": [
+      {
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test('Status code is 400 or 422', function () {",
+            "    pm.expect(pm.response.code).to.be.oneOf([400, 422]);",
+            "});",
+            "",
+            "pm.test('Response contains error message', function () {",
+            "    const jsonData = pm.response.json();",
+            "",
+            "    pm.expect(",
+            "        jsonData.message || jsonData.error,",
+            "        'Response should contain message or error'",
+            "    ).to.not.be.undefined;",
+            "});"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      },
+      {
+        "listen": "prerequest",
+        "script": {
+          "exec": [""],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      }
+    ],
+    "request": {
+      "method": "POST",
+      "header": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mode": "raw",
+        "raw": "{\n    \"name\": \"Test User\",\n    \"email\": \"invalid-email\",\n    \"password\": \"{{password}}\"\n}"
+      },
+      "url": {
+        "raw": "{{base_url}}/v1/auth/register",
+        "host": ["{{base_url}}"],
+        "path": ["v1", "auth", "register"]
+      }
+    },
+    "response": []
+  },
+  {
+    "name": "Register - Empty Name",
+    "event": [
+      {
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test('Status code is 400 or 422', function () {",
+            "    pm.expect(pm.response.code).to.be.oneOf([400, 422]);",
+            "});",
+            "",
+            "pm.test('Response contains validation error', function () {",
+            "    const jsonData = pm.response.json();",
+            "",
+            "    pm.expect(",
+            "        jsonData.message || jsonData.error,",
+            "        'Response should contain validation error message'",
+            "    ).to.not.be.undefined;",
+            "});"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      }
+    ],
+    "request": {
+      "method": "POST",
+      "header": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mode": "raw",
+        "raw": "{\n    \"name\": \"\",\n    \"email\": \"test@example.com\",\n    \"password\": \"{{password}}\"\n}"
+      },
+      "url": {
+        "raw": "{{base_url}}/v1/auth/register",
+        "host": ["{{base_url}}"],
+        "path": ["v1", "auth", "register"]
+      }
+    },
+    "response": []
+  },
+  {
+    "name": "Register - Weak Password",
+    "event": [
+      {
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test('Status code is 400 or 422', function () {",
+            "    pm.expect(pm.response.code).to.be.oneOf([400, 422]);",
+            "});",
+            "",
+            "pm.test('Error message mentions password', function () {",
+            "    const responseText = pm.response.text().toLowerCase();",
+            "    pm.expect(responseText).to.include('password');",
+            "});"
+          ],
+          "type": "text/javascript"
+        }
+      }
+    ],
+    "request": {
+      "method": "POST",
+      "header": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mode": "raw",
+        "raw": "{\n    \"name\": \"Test User\",\n    \"email\": \"test@example.com\",\n    \"password\": \"123\"\n}"
+      },
+      "url": {
+        "raw": "{{base_url}}/v1/auth/register",
+        "host": ["{{base_url}}"],
+        "path": ["v1", "auth", "register"]
+      }
+    },
+    "response": []
+  },
+  {
+    "name": "Register - Duplicate Email",
+    "event": [
+      {
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test('Status code is 400, 409, or 422', function () {",
+            "    pm.expect(pm.response.code).to.be.oneOf([400, 409, 422]);",
+            "});",
+            "",
+            "pm.test('Error indicates duplicate/exists', function () {",
+            "    const responseText = pm.response.text().toLowerCase();",
+            "    const hasDuplicateError = responseText.includes('already') || ",
+            "                              responseText.includes('exists') || ",
+            "                              responseText.includes('duplicate');",
+            "    pm.expect(hasDuplicateError).to.be.true;",
+            "});"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      },
+      {
+        "listen": "prerequest",
+        "script": {
+          "exec": [""],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      }
+    ],
+    "request": {
+      "method": "POST",
+      "header": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mode": "raw",
+        "raw": "{\n    \"name\": \"Duplicate User\",\n    \"email\": \"{{random_email}}\",\n    \"password\": \"{{password}}\"\n}"
+      },
+      "url": {
+        "raw": "{{base_url}}/v1/auth/register",
+        "host": ["{{base_url}}"],
+        "path": ["v1", "auth", "register"]
+      }
+    },
+    "response": []
+  },
+  {
+    "name": "Register - Missing Fields",
+    "event": [
+      {
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test('Status code is 400 or 422', function () {",
+            "    pm.expect(pm.response.code).to.be.oneOf([400, 422]);",
+            "});",
+            "",
+            "pm.test('Response contains validation error', function () {",
+            "    const jsonData = pm.response.json();",
+            "",
+            "    pm.expect(",
+            "        jsonData.message || jsonData.error,",
+            "        'Response should contain validation error message'",
+            "    ).to.not.be.undefined;",
+            "});"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      }
+    ],
+    "request": {
+      "method": "POST",
+      "header": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mode": "raw",
+        "raw": "{\n    \"name\": \"Test User\"\n}"
+      },
+      "url": {
+        "raw": "{{base_url}}/v1/auth/register",
+        "host": ["{{base_url}}"],
+        "path": ["v1", "auth", "register"]
+      }
+    },
+    "response": []
+  },
+  {
+    "name": "Register - SQL Injection Test",
+    "event": [
+      {
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test('Request is handled properly', function () {",
+            "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 400, 422, 500]);",
+            "});",
+            "",
+            "pm.test('No database details exposed', function () {",
+            "    const responseText = pm.response.text().toLowerCase();",
+            "    pm.expect(responseText).to.not.include('sql');",
+            "    pm.expect(responseText).to.not.include('database');",
+            "    pm.expect(responseText).to.not.include('mysql');",
+            "});"
+          ],
+          "type": "text/javascript"
+        }
+      }
+    ],
+    "request": {
+      "method": "POST",
+      "header": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mode": "raw",
+        "raw": "{\n    \"name\": \"Test' OR '1'='1\",\n    \"email\": \"test@example.com' OR '1'='1\",\n    \"password\": \"{{password}}\"\n}"
+      },
+      "url": {
+        "raw": "{{base_url}}/v1/auth/register",
+        "host": ["{{base_url}}"],
+        "path": ["v1", "auth", "register"]
+      }
+    },
+    "response": []
+  },
+  {
+    "name": "Register - XSS Test",
+    "event": [
+      {
+        "listen": "test",
+        "script": {
+          "exec": [
+            "pm.test('Request is handled', function () {",
+            "    pm.expect(pm.response.code).to.be.oneOf([200, 201, 400, 422]);",
+            "});",
+            "",
+            "if (pm.response.code === 200 || pm.response.code === 201) {",
+            "    pm.test('Script tags are sanitized', function () {",
+            "        const responseText = pm.response.text();",
+            "        pm.expect(responseText).to.not.include('<script>');",
+            "    });",
+            "}"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      },
+      {
+        "listen": "prerequest",
+        "script": {
+          "exec": [
+            "const ts = Date.now();",
+            "const rand = Math.floor(Math.random() * 10000);",
+            "",
+            "const xssEmail = `xss${ts}${rand}@test.com`;",
+            "",
+            "pm.environment.set('xss_email', xssEmail);",
+            "",
+            "console.log('XSS Email:', xssEmail);"
+          ],
+          "type": "text/javascript",
+          "packages": {},
+          "requests": {}
+        }
+      }
+    ],
+    "request": {
+      "method": "POST",
+      "header": [
+        {
+          "key": "Content-Type",
+          "value": "application/json"
+        }
+      ],
+      "body": {
+        "mode": "raw",
+        "raw": "{\n  \"name\": \"<script>alert('XSS')</script>\",\n  \"email\": \"{{xss_email}}\",\n  \"password\": \"{{password}}\"\n}"
+      },
+      "url": {
+        "raw": "{{base_url}}/v1/auth/register",
+        "host": ["{{base_url}}"],
+        "path": ["v1", "auth", "register"]
+      }
+    },
+    "response": []
+  }
+]
