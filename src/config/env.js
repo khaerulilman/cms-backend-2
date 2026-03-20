@@ -35,7 +35,14 @@ export const config = {
 logger.debug({ allowedOrigins: config.ALLOWED_ORIGINS }, "CORS origins loaded");
 
 // Validate required env variables
-const requiredEnvVars = ["DATABASE_URL", "JWT_SECRET", "FRONTEND_URL"];
+const requiredEnvVars = [
+  "DATABASE_URL",
+  "JWT_SECRET",
+  "FRONTEND_URL",
+  "GOOGLE_CLIENT_ID",
+  "GOOGLE_CLIENT_SECRET",
+  "GOOGLE_CALLBACK_URL",
+];
 for (const envVar of requiredEnvVars) {
   if (!process.env[envVar]) {
     throw new Error(`Missing required environment variable: ${envVar}`);
