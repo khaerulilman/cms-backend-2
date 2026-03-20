@@ -5,6 +5,7 @@
   "description": "Portfolio CMS Backend API",
   "main": "src/server.js",
   "scripts": {
+    "postinstall": "prisma generate",
     "build": "prisma generate",
     "start": "node src/server.js",
     "prod": "cross-env NODE_ENV=production node src/server.js",
