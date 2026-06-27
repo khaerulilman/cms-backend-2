@@ -1,8 +1,11 @@
 import app from './app.js';
 import { config } from './config/env.js';
 import logger from './utils/logger.js';
+import { initializeRedis } from './utils/redis.js';
 
 const PORT = config.PORT;
+
+await initializeRedis();
 
 const server = app.listen(PORT, () => {
   logger.info({ port: PORT, env: config.NODE_ENV }, 'Server started');

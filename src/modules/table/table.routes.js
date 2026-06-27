@@ -1,6 +1,7 @@
 import { Router } from 'express';
 
 import { authMiddleware } from '../../middlewares/auth.middleware.js';
+import { cacheResponse, invalidateCache } from '../../utils/redis.js';
 
 import TableController from './table.controller.js';
 
@@ -11,35 +12,45 @@ const controller = new TableController();
 router.use(authMiddleware);
 
 // Create table
-router.post('/', (req, res, next) => controller.createTable(req, res, next));
+router.post(
+  '/',
+  invalidateCache(['tables']),
+  (req, res, next) => controller.createTable(req, res, next),
+);
 
 // Get all tables by project
-router.get('/project/:projectId', (req, res, next) =>
+router.get('/project/:projectId', cacheResponse('tables'), (req, res, next) =>
   controller.getTablesByProject(req, res, next),
 );
 
 // Get specific table
-router.get('/:tableId', (req, res, next) =>
+router.get('/:tableId', cacheResponse('tables'), (req, res, next) =>
   controller.getTableById(req, res, next),
 );
 
 // Update table
-router.put('/:tableId', (req, res, next) =>
-  controller.updateTable(req, res, next),
+router.put(
+  '/:tableId',
+  invalidateCache(['tables', 'cms-columns', 'cms-rows', 'cms-cells']),
+  (req, res, next) => controller.updateTable(req, res, next),
 );
 
 // Delete table
-router.delete('/:tableId', (req, res, next) =>
-  controller.deleteTable(req, res, next),
+router.delete(
+  '/:tableId',
+  invalidateCache(['tables', 'cms-columns', 'cms-rows', 'cms-cells']),
+  (req, res, next) => controller.deleteTable(req, res, next),
 );
 
 // Duplicate table (deep copy with columns, rows, and cells)
-router.post('/:tableId/duplicate', (req, res, next) =>
-  controller.duplicateTable(req, res, next),
+router.post(
+  '/:tableId/duplicate',
+  invalidateCache(['tables', 'cms-columns', 'cms-rows', 'cms-cells']),
+  (req, res, next) => controller.duplicateTable(req, res, next),
 );
 
 // Get table simplified (with resolved table references)
-router.get('/:tableId/simplified', (req, res, next) =>
+router.get('/:tableId/simplified', cacheResponse('tables'), (req, res, next) =>
   controller.getTableSimplified(req, res, next),
 );
 
