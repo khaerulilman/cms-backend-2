@@ -1,8 +1,14 @@
+import { Redis } from "@upstash/redis";
 import dotenv from "dotenv";
 
 import logger from "../utils/logger.js";
 
 dotenv.config();
+
+export const redis = new Redis({
+  url: process.env.UPSTASH_REDIS_REST_URL,
+  token: process.env.UPSTASH_REDIS_REST_TOKEN,
+});
 
 export const config = {
   DATABASE_URL: process.env.DATABASE_URL,
@@ -29,6 +35,8 @@ export const config = {
   CLOUDINARY_API_SECRET: process.env.CLOUDINARY_API_SECRET,
   COOKIE_CROSS_SITE: process.env.COOKIE_CROSS_SITE,
   SENTRY_DSN: process.env.SENTRY_DSN || "",
+  UPSTASH_REDIS_REST_URL: process.env.UPSTASH_REDIS_REST_URL,
+  UPSTASH_REDIS_REST_TOKEN: process.env.UPSTASH_REDIS_REST_TOKEN,
 };
 
 // Debug: log CORS origins on startup
@@ -42,6 +50,8 @@ const requiredEnvVars = [
   "GOOGLE_CLIENT_ID",
   "GOOGLE_CLIENT_SECRET",
   "GOOGLE_CALLBACK_URL",
+  "UPSTASH_REDIS_REST_URL",
+  "UPSTASH_REDIS_REST_TOKEN",
 ];
 for (const envVar of requiredEnvVars) {
   if (!process.env[envVar]) {
