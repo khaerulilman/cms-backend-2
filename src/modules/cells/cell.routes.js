@@ -6,6 +6,7 @@ import multer from 'multer';
 import { authMiddleware } from '../../middlewares/auth.middleware.js';
 import { sanitizeInput } from '../../middlewares/sanitize.middleware.js';
 import { validateRequest } from '../../middlewares/validation.middleware.js';
+import { cacheResponse, invalidateCache } from '../../utils/redis.js';
 
 import CellController from './cell.controller.js';
 import { cellValidationSchemas } from './cell.validation.js';
@@ -48,6 +49,7 @@ router.get(
   '/row/:rowId',
   sanitizeInput,
   validateRequest(cellValidationSchemas.getCellsByRow, 'params'),
+  cacheResponse('cms-cells'),
   (req, res, next) => controller.getCellsByRow(req, res, next),
 );
 
@@ -57,6 +59,7 @@ router.post(
   upload.single('image'),
   sanitizeInput,
   validateRequest(cellValidationSchemas.upsertCell, ['params', 'body']),
+  invalidateCache(['cms-cells', 'cms-rows', 'tables']),
   (req, res, next) => controller.upsertCell(req, res, next),
 );
 
