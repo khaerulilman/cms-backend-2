@@ -2,7 +2,7 @@ module.exports = {
   apps: [
     {
       name: "portfolio-cms",
-      script: "src/server.js",
+      script: "server.js",
       exec_mode: "fork",
       instances: 1,
 
@@ -13,7 +13,7 @@ module.exports = {
     },
     {
       name: "portfolio-cms-staging",
-      script: "src/server.js",
+      script: "server.js",
       exec_mode: "fork",
       instances: 1,
 

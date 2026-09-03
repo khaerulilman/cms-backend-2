@@ -1,0 +1,15 @@
+export const USER_ROLES = {
+  ADMIN: 'ADMIN',
+  USER: 'USER',
+};
+
+export const PERMISSIONS = {
+  MANAGE_PROJECTS: 'MANAGE_PROJECTS',
+  MANAGE_TABLES: 'MANAGE_TABLES',
+  MANAGE_API_KEYS: 'MANAGE_API_KEYS',
+};
+
+export default {
+  USER_ROLES,
+  PERMISSIONS,
+};

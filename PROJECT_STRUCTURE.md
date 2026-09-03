@@ -1,334 +1,158 @@
-# Project Structure Overview
-
-trigger
+# Project Structure Overview — Clean Architecture
 
 ## Directory Tree
 
 ```
-portfolio-cms-backend/
+backend-staging/
 │
-├── 📄 package.json                 (Project configuration & dependencies)
-├── 📄 .env                        (Environment variables - DO NOT COMMIT)
-├── 📄 .gitignore                  (Git ignore rules)
-├── 📄 README.md                   (Main documentation)
-├── 📄 API_DOCUMENTATION.md        (API endpoints documentation)
-├── 📄 API_TESTING.md              (API testing examples)
-├── 📄 SETUP_GUIDE.md              (Setup & quick start guide)
-├── 📄 PROJECT_STRUCTURE.md        (This file)
+├── 📄 package.json                     (Project configuration & dependencies)
+├── 📄 .env                            (Environment variables - DO NOT COMMIT)
+├── 📄 .gitignore                      (Git ignore rules)
+├── 📄 README.md                       (Main documentation)
+├── 📄 API_DOCUMENTATION.md            (API endpoints documentation)
+├── 📄 API_TESTING.md                  (API testing examples)
+├── 📄 SETUP_GUIDE.md                  (Setup & quick start guide)
+├── 📄 PROJECT_STRUCTURE.md            (This file)
+├── 📄 eslint.config.js                (ESLint flat configuration)
+│
+├── api/
+│   └── 📄 index.js                    (Vercel Serverless entrypoint)
 │
 ├── prisma/
-│   ├── 📄 schema.prisma           (Database schema definition)
-│   ├── 📄 migration_lock.toml     (Migration lock file)
-│   └── migrations/                (Database migrations folder)
-│       └── 20260110133527_init/
-│           └── migration.sql      (Initial migration)
+│   ├── 📄 schema.prisma               (Database schema definition)
+│   ├── 📄 migration_lock.toml         (Migration lock file)
+│   └── migrations/                    (Database migrations folder)
 │
-└── src/                           (Source code - Main folder)
+└── src/                               (Source code - Clean Architecture)
     │
-    ├── 📄 app.js                  (Express app setup)
-    ├── 📄 server.js               (Server startup)
-    ├── 📄 routes.js               (Main route aggregator)
+    ├── 📄 app.js                      (Entrypoint re-export for Vercel/tests)
+    ├── 📄 server.js                   (Entrypoint re-export for local node server)
+    ├── 📄 container.js                (IoC Container / Composition Root)
     │
-    ├── config/                    (Configuration files)
-    │   ├── 📄 env.js              (Environment variables handler)
-    │   ├── 📄 jwt.js              (JWT configuration)
-    │   └── 📄 index.js            (Config exports)
+    ├── entities/                      # Enterprise Business Rules (Innermost Layer)
+    │   ├── constants/
+    │   │   ├── 📄 http.js             (HTTP status codes, standard messages)
+    │   │   └── 📄 roles.js            (User roles & permissions)
+    │   └── errors/
+    │       └── 📄 index.js            (Custom domain error hierarchy)
     │
-    ├── modules/                   (Feature modules)
-    │   │
-    │   └── auth/                  (Authentication module)
-    │       ├── 📄 auth.controller.js      (Request handlers)
-    │       ├── 📄 auth.service.js         (Business logic)
-    │       ├── 📄 auth.repository.js      (Database queries)
-    │       ├── 📄 auth.routes.js          (Route definitions)
-    │       └── 📄 index.js                (Module exports)
+    ├── use-cases/                     # Application Business Rules
+    │   ├── apikey/
+    │   │   └── 📄 apikey.usecase.js   (API key generation & verification)
+    │   ├── auth/
+    │   │   └── 📄 auth.usecase.js     (Auth, profile, tokens & sessions)
+    │   ├── cells/
+    │   │   └── 📄 cell.usecase.js     (Cell data & image upload handling)
+    │   ├── columns/
+    │   │   └── 📄 column.usecase.js   (CMS column management)
+    │   ├── project/
+    │   │   └── 📄 project.usecase.js  (CMS project management)
+    │   ├── rows/
+    │   │   └── 📄 row.usecase.js      (CMS row management)
+    │   └── table/
+    │       └── 📄 table.usecase.js    (CMS table management & deep duplicate)
     │
-    ├── middlewares/               (Express middlewares)
-    │   ├── 📄 auth.middleware.js   (JWT verification)
-    │   └── 📄 error.middleware.js  (Global error handler)
+    ├── adapters/                      # Interface Adapters
+    │   ├── controllers/
+    │   │   ├── 📄 auth.controller.js
+    │   │   ├── 📄 apikey.controller.js
+    │   │   ├── 📄 project.controller.js
+    │   │   ├── 📄 table.controller.js
+    │   │   ├── 📄 column.controller.js
+    │   │   ├── 📄 row.controller.js
+    │   │   ├── 📄 cell.controller.js
+    │   │   └── 📄 diagnostic.controller.js
+    │   ├── middleware/
+    │   │   ├── 📄 auth.middleware.js
+    │   │   ├── 📄 apiKey.middleware.js
+    │   │   ├── 📄 error.middleware.js
+    │   │   ├── 📄 requestLogger.middleware.js
+    │   │   ├── 📄 sanitize.middleware.js
+    │   │   └── 📄 validation.middleware.js
+    │   ├── repositories/
+    │   │   ├── 📄 auth.repository.js
+    │   │   ├── 📄 apikey.repository.js
+    │   │   ├── 📄 project.repository.js
+    │   │   ├── 📄 table.repository.js
+    │   │   ├── 📄 column.repository.js
+    │   │   ├── 📄 row.repository.js
+    │   │   └── 📄 cell.repository.js
+    │   ├── routes/
+    │   │   ├── 📄 auth.routes.js
+    │   │   ├── 📄 apikey.routes.js
+    │   │   ├── 📄 project.routes.js
+    │   │   ├── 📄 table.routes.js
+    │   │   ├── 📄 column.routes.js
+    │   │   ├── 📄 row.routes.js
+    │   │   ├── 📄 cell.routes.js
+    │   │   ├── 📄 diagnostic.routes.js
+    │   │   └── 📄 index.js             (Central router aggregator)
+    │   └── services/
+    │       ├── 📄 cloudinary.service.js
+    │       ├── 📄 imageCleanup.service.js
+    │       ├── 📄 hash.service.js
+    │       ├── 📄 jwt.service.js
+    │       ├── 📄 file.service.js
+    │       ├── 📄 validator.service.js
+    │       └── validation/
+    │           ├── 📄 auth.validation.js
+    │           ├── 📄 apikey.validation.js
+    │           ├── 📄 project.validation.js
+    │           ├── 📄 table.validation.js
+    │           ├── 📄 column.validation.js
+    │           ├── 📄 row.validation.js
+    │           └── 📄 cell.validation.js
     │
-    ├── utils/                     (Utility functions)
-    │   ├── 📄 hash.js             (Password hashing)
-    │   ├── 📄 jwt.js              (Token utilities)
-    │   ├── 📄 validator.js        (Input validation)
-    │   ├── 📄 errors.js           (Custom error classes)
-    │   └── 📄 index.js            (Utils exports)
-    │
-    ├── constants/                 (Constants & enums)
-    │   ├── 📄 roles.js            (User roles & permissions)
-    │   └── 📄 http.js             (HTTP status & messages)
-    │
-    └── prisma/                    (Database layer)
-        └── 📄 client.js           (Prisma client instance)
+    └── frameworks/                    # Frameworks & Drivers (Outermost Layer)
+        ├── config/
+        │   ├── 📄 env.js              (Environment loader & schema)
+        │   ├── 📄 jwt.js              (JWT token signer/verifier)
+        │   └── 📄 cloudinary.js       (Cloudinary client configuration)
+        ├── database/
+        │   └── prisma/
+        │       └── 📄 client.js       (Prisma client instance)
+        ├── cache/
+        │   └── 📄 redis.js            (Upstash Redis cache & middlewares)
+        ├── logging/
+        │   └── 📄 logger.js           (Pino logger instance)
+        ├── oauth/
+        │   └── 📄 google-oauth.js     (Passport Google Strategy setup)
+        ├── monitoring/
+        │   └── 📄 sentry.js           (Sentry monitoring initialization)
+        ├── docs/
+        │   ├── 📄 swagger.js          (OpenAPI/Swagger setup)
+        │   ├── components/
+        │   │   └── 📄 schemas.js
+        │   └── paths/
+        │       ├── 📄 auth.js
+        │       └── 📄 apikey.js
+        └── web/
+            ├── 📄 app.js              (Express app configuration)
+            └── 📄 server.js           (HTTP server bootstrap & graceful shutdown)
 ```
 
 ---
 
-## File Descriptions
-
-### Root Level Files
-
-| File                   | Purpose                                 |
-| ---------------------- | --------------------------------------- |
-| `package.json`         | Project metadata, dependencies, scripts |
-| `.env`                 | Environment variables (NOT in git)      |
-| `.gitignore`           | Git ignore rules                        |
-| `README.md`            | Main project documentation              |
-| `API_DOCUMENTATION.md` | Detailed API endpoints documentation    |
-| `API_TESTING.md`       | Examples for testing APIs               |
-| `SETUP_GUIDE.md`       | Setup instructions and checklist        |
-
-### `src/` - Source Code
-
-#### Core Files
-
-| File        | Responsibility                                               |
-| ----------- | ------------------------------------------------------------ |
-| `app.js`    | Express app initialization, middleware setup, error handling |
-| `server.js` | Server startup, graceful shutdown handling                   |
-| `routes.js` | Central route aggregation for all modules                    |
-
-#### `src/config/` - Configuration
-
-| File       | Purpose                               |
-| ---------- | ------------------------------------- |
-| `env.js`   | Load & validate environment variables |
-| `jwt.js`   | JWT token generation & verification   |
-| `index.js` | Centralized exports                   |
-
-#### `src/modules/` - Feature Modules
-
-Currently contains `auth/` module with:
-
-| File                 | MVC Role   | Responsibility                             |
-| -------------------- | ---------- | ------------------------------------------ |
-| `auth.controller.js` | Controller | Handle HTTP requests/responses             |
-| `auth.service.js`    | Service    | Business logic, validation, error handling |
-| `auth.repository.js` | Repository | Database queries, Prisma operations        |
-| `auth.routes.js`     | Routes     | Define endpoints, mount controllers        |
-
-#### `src/middlewares/` - Express Middlewares
-
-| File                  | Purpose                                   |
-| --------------------- | ----------------------------------------- |
-| `auth.middleware.js`  | JWT token verification & user extraction  |
-| `error.middleware.js` | Global error handler, status code mapping |
-
-#### `src/utils/` - Utility Functions
-
-| File           | Purpose                                               |
-| -------------- | ----------------------------------------------------- |
-| `hash.js`      | Password hashing with bcryptjs                        |
-| `jwt.js`       | Token generation & verification helpers               |
-| `validator.js` | Input validation (email, password, name)              |
-| `errors.js`    | Custom error classes (AppError, ValidationError, etc) |
-| `index.js`     | Centralized exports                                   |
-
-#### `src/constants/` - Constants & Enums
-
-| File       | Contains                                  |
-| ---------- | ----------------------------------------- |
-| `roles.js` | User roles, permissions (for future use)  |
-| `http.js`  | HTTP status codes, error/success messages |
-
-#### `src/prisma/` - Database Layer
-
-| File        | Purpose                          |
-| ----------- | -------------------------------- |
-| `client.js` | Prisma client singleton instance |
-
-### `prisma/` - Database
-
-| File/Folder           | Purpose                    |
-| --------------------- | -------------------------- |
-| `schema.prisma`       | Database schema definition |
-| `migrations/`         | Database migration files   |
-| `migration_lock.toml` | Migration lock file        |
-
----
-
-## Module Structure Pattern
-
-Each feature module follows MVC + Repository pattern:
-
-```
-modules/
-└── feature-name/
-    ├── feature.controller.js      # Handle HTTP requests
-    ├── feature.service.js         # Business logic
-    ├── feature.repository.js      # Database operations
-    ├── feature.routes.js          # Route definitions
-    └── index.js                   # Module exports
-```
-
-### Data Flow
-
-```
-Request
-   ↓
-Routes → Controller → Service → Repository → Database
-   ↑                                         ↓
-Response ← Controller ← Service ← Data ←────
-```
-
----
-
-## Future Module Additions
-
-### Phase 2: User Module
-
-```
-src/modules/user/
-├── user.controller.js
-├── user.service.js
-├── user.repository.js
-├── user.routes.js
-└── index.js
-```
-
-### Phase 3: Project Module
-
-```
-src/modules/project/
-├── project.controller.js
-├── project.service.js
-├── project.repository.js
-├── project.routes.js
-└── index.js
-```
-
-### Phase 4: CMS Table/Column/Row/Cell Modules
-
-Similar structure for each CMS component
-
----
-
-## Import Conventions
-
-### From Config
-
-```javascript
-import config from "./config/env.js";
-import { JwtConfig } from "./config/jwt.js";
-```
-
-### From Utils
-
-```javascript
-import { HashUtil } from "./utils/hash.js";
-import { JwtUtil } from "./utils/jwt.js";
-import Validator from "./utils/validator.js";
-import { ConflictError, ValidationError } from "./utils/errors.js";
-```
-
-### From Modules
-
-```javascript
-import AuthController from "./modules/auth/auth.controller.js";
-import AuthService from "./modules/auth/auth.service.js";
-import AuthRepository from "./modules/auth/auth.repository.js";
-```
-
-### From Prisma
-
-```javascript
-import prisma from "./prisma/client.js";
-```
-
----
-
-## Environment Variable Mapping
-
-| Variable       | Used In                | Purpose                      |
-| -------------- | ---------------------- | ---------------------------- |
-| `DATABASE_URL` | `src/prisma/client.js` | Prisma database connection   |
-| `JWT_SECRET`   | `src/config/jwt.js`    | Token signing & verification |
-| `FRONTEND_URL` | `src/app.js`           | CORS origin configuration    |
-| `NODE_ENV`     | Various                | Environment detection        |
-| `PORT`         | `src/server.js`        | Server port                  |
-
----
-
-## Architecture Decisions
-
-### 1. **ES Modules** (`"type": "module"`)
-
-- Modern JavaScript syntax
-- Better tree-shaking
-- Cleaner imports/exports
-
-### 2. **MVC + Repository Pattern**
-
-```
-Request → Controller → Service → Repository → Database
-```
-
-- **Controller**: HTTP handling
-- **Service**: Business logic
-- **Repository**: Data access
-
-### 3. **Centralized Error Handling**
-
-- Custom error classes in `src/utils/errors.js`
-- Global error middleware in `src/middlewares/error.middleware.js`
-- Consistent error responses
-
-### 4. **JWT Token Strategy**
-
-- Access Token: 7 days
-- Refresh Token: 30 days
-- Separate token types in payload
-
-### 5. **Validation Layer**
-
-- Input validation in Service layer
-- Validator utility class
-- Custom error throwing
-
-### 6. **Configuration Management**
-
-- Single config file: `src/config/env.js`
-- Environment validation on startup
-- Safe defaults
-
----
-
-## Best Practices Implemented
-
-✅ **Separation of Concerns** - Each file has single responsibility  
-✅ **DRY (Don't Repeat Yourself)** - Reusable utilities and classes  
-✅ **Error Handling** - Custom error classes with proper status codes  
-✅ **Input Validation** - Dedicated validator utility  
-✅ **Configuration** - Centralized env management  
-✅ **Security** - Password hashing, JWT validation, CORS  
-✅ **Middleware Pipeline** - Clean request/response flow  
-✅ **Module Exports** - Centralized index.js for each folder  
-✅ **Documentation** - Multiple guide files  
-✅ **ES Modules** - Modern JavaScript syntax
-
----
-
-## Scalability Notes
-
-### Adding New Modules
-
-1. Create `src/modules/feature-name/` folder
-2. Add controller, service, repository, routes files
-3. Create `index.js` with exports
-4. Add routes to `src/routes.js`
-
-### Adding New Utilities
-
-1. Create file in `src/utils/`
-2. Export in `src/utils/index.js`
-3. Use centralized imports in other files
-
-### Adding New Middleware
-
-1. Create file in `src/middlewares/`
-2. Import and use in `src/app.js`
-
----
-
-**Last Updated**: January 10, 2026  
-**Project Status**: Production Ready (Phase 1)
+## Clean Architecture Layers
+
+### 1. Entities (`src/entities/`)
+- Enterprise domain definitions, custom error classes, HTTP constants, and domain roles.
+- Zero dependencies on any outer layers.
+
+### 2. Use Cases (`src/use-cases/`)
+- Pure application business logic.
+- Accept dependencies (repositories, gateways/services) via constructor injection.
+- Zero dependencies on HTTP/Express framework objects (`req`, `res`).
+
+### 3. Interface Adapters (`src/adapters/`)
+- `controllers/`: Handles Express `req`/`res`, invokes use cases, sets cookies, maps responses.
+- `middleware/`: HTTP middlewares (Authentication, API Key, Validation, Sanitization, Logging, Global Error).
+- `repositories/`: Data access implementations via Prisma.
+- `routes/`: Route definitions binding controllers and middlewares.
+- `services/`: Helper and SDK adapters (Bcrypt, JWT, Cloudinary, File, ImageCleanup, Joi schemas).
+
+### 4. Frameworks & Drivers (`src/frameworks/`)
+- Third-party tools, databases, cache clients, OAuth strategies, monitoring (Sentry), OpenAPI docs, and Express web application wiring.
+
+### 5. Dependency Injection Root (`src/container.js`)
+- Single composition root responsible for instantiating and wiring all dependencies.
