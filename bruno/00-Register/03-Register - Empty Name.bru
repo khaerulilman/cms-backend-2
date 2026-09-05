@@ -1,0 +1,34 @@
+meta {
+  name: Register - Empty Name
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{base_url}}/v1/auth/register
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+      "name": "",
+      "email": "test@example.com",
+      "password": "{{password}}"
+  }
+}
+
+tests {
+  test('Status code is 400 or 422', function () {
+      expect(res.getStatus()).to.be.oneOf([400, 422]);
+  });
+  
+  test('Response contains validation error', function () {
+      const jsonData = res.getBody();
+      expect(jsonData.message || jsonData.error).to.not.be.undefined;
+  });
+}

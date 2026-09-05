@@ -1,0 +1,46 @@
+meta {
+  name: Get All API Keys
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{base_url}}/v1/apikey
+  body: none
+  auth: none
+}
+
+headers {
+  Cookie: accessToken={{access_token}}
+}
+
+tests {
+  test('Status code is 200', function () {
+      expect(res.getStatus()).to.equal(200);
+  });
+  
+  test('Response is JSON', function () {
+      expect(res.getBody()).to.be.an('object');
+  });
+  
+  test('Response contains success message', function () {
+      const jsonData = res.getBody();
+      expect(jsonData.success).to.equal(true);
+      expect(jsonData.message).to.exist;
+  });
+  
+  test('Response contains API Keys array', function () {
+      const jsonData = res.getBody();
+      expect(jsonData.data).to.exist;
+      expect(jsonData.data.apiKeys).to.be.an('array');
+      expect(jsonData.data.total).to.exist;
+  });
+  
+  test('API Keys are properly masked', function () {
+      const jsonData = res.getBody();
+      if (jsonData.data && jsonData.data.apiKeys && jsonData.data.apiKeys.length > 0) {
+          const apiKey = jsonData.data.apiKeys[0].apiKey;
+          expect(apiKey).to.include('*');
+      }
+  });
+}

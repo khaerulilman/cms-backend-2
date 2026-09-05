@@ -14,7 +14,7 @@
     "lint:fix": "eslint . --fix",
     "lint:report": "eslint . --output-file eslint-report.json --format json",
     "db:migrate": "prisma migrate dev",
-    "postman:merge": "node postman/tools/merge-collection.js"
+    "bruno:merge": "node bruno/tools/merge-collection.js && node bruno/tools/convert-to-bru.js"
   },
   "dependencies": {
     "@prisma/client": "^5.22.0",

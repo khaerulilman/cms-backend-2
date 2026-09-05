@@ -1,0 +1,49 @@
+meta {
+  name: Upsert Cell - Success with Image
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{base_url}}/v1/cms-cells/row/{{row_id}}
+  body: multipart-form
+  auth: none
+}
+
+headers {
+  Cookie: accessToken={{access_token}}
+}
+
+body:multipart-form {
+  columnId: {{column_id}}
+  value: Test cell with uploaded image
+  image: @file(../../assets/test-image.png)
+}
+
+tests {
+  test('Status code is 200', function () {
+      expect(res.getStatus()).to.equal(200);
+  });
+  
+  test('Response is JSON', function () {
+      expect(res.getBody()).to.be.an('object');
+  });
+  
+  test('Response has success property set to true', function () {
+      const jsonData = res.getBody();
+      expect(jsonData.success).to.equal(true);
+  });
+  
+  test('Response data contains cell id and row info', function () {
+      const jsonData = res.getBody();
+      expect(jsonData.data).to.have.property('id');
+      expect(jsonData.data).to.have.property('rowId');
+      expect(jsonData.data).to.have.property('columnId');
+      expect(jsonData.data).to.have.property('value');
+  });
+  
+  if (res.getStatus() === 200) {
+      const jsonData = res.getBody();
+      bru.setEnvVar('cell_id_image', jsonData.data.id);
+  }
+}

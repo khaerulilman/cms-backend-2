@@ -1,0 +1,39 @@
+meta {
+  name: Get All User Projects - Success
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{base_url}}/v1/projects
+  body: none
+  auth: none
+}
+
+headers {
+  Cookie: accessToken={{access_token}}
+}
+
+tests {
+  test('Status code is 200', function () {
+      expect(res.getStatus()).to.equal(200);
+  });
+  
+  test('Response is JSON', function () {
+      expect(res.getBody()).to.be.an('object');
+  });
+  
+  test('Response has success property', function () {
+      const jsonData = res.getBody();
+      expect(jsonData.success).to.equal(true);
+  });
+  
+  test('Response contains projects array', function () {
+      const jsonData = res.getBody();
+      expect(jsonData.data).to.be.an('array');
+  });
+  
+  test('Response time is less than 2000ms', function () {
+      expect(res.getResponseTime()).to.be.below(2000);
+  });
+}

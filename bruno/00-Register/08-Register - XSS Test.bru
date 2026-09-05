@@ -1,0 +1,44 @@
+meta {
+  name: Register - XSS Test
+  type: http
+  seq: 8
+}
+
+post {
+  url: {{base_url}}/v1/auth/register
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+    "name": "<script>alert('XSS')</script>",
+    "email": "{{xss_email}}",
+    "password": "{{password}}"
+  }
+}
+
+script:pre-request {
+  const ts = Date.now();
+  const rand = Math.floor(Math.random() * 10000);
+  const xssEmail = `xss${ts}${rand}@test.com`;
+  bru.setEnvVar('xss_email', xssEmail);
+}
+
+tests {
+  test('Request is handled', function () {
+      expect(res.getStatus()).to.be.oneOf([200, 201, 400, 422]);
+  });
+  
+  if (res.getStatus() === 200 || res.getStatus() === 201) {
+      test('Script tags are sanitized', function () {
+          const body = res.getBody();
+          const responseText = typeof body === 'string' ? body : JSON.stringify(body);
+          expect(responseText).to.not.include('<script>');
+      });
+  }
+}

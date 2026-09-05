@@ -1,0 +1,45 @@
+meta {
+  name: Update Project - Success
+  type: http
+  seq: 10
+}
+
+put {
+  url: {{base_url}}/v1/projects/{{project_id}}
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  Cookie: accessToken={{access_token}}
+}
+
+body:json {
+  {
+      "name": "{{updated_project_name}}",
+      "description": "Updated description for the project"
+  }
+}
+
+script:pre-request {
+  const timestamp = Date.now();
+  const updatedName = `Updated Project ${timestamp}`;
+  bru.setEnvVar('updated_project_name', updatedName);
+}
+
+tests {
+  test('Status code is 200', function () {
+      expect(res.getStatus()).to.equal(200);
+  });
+  
+  test('Response has success property', function () {
+      const jsonData = res.getBody();
+      expect(jsonData.success).to.equal(true);
+  });
+  
+  test('Project name is updated', function () {
+      const jsonData = res.getBody();
+      expect(jsonData.data.name).to.equal(bru.getEnvVar('updated_project_name'));
+  });
+}

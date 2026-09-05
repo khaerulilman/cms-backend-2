@@ -1,0 +1,33 @@
+meta {
+  name: Create Table - Missing Project ID
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{base_url}}/v1/tables
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  Cookie: accessToken={{access_token}}
+}
+
+body:json {
+  {
+      "name": "Test Table"
+  }
+}
+
+tests {
+  test('Status code is 400 or 422', function () {
+      expect(res.getStatus()).to.be.oneOf([400, 422]);
+  });
+  
+  test('Response indicates validation error', function () {
+      const jsonData = res.getBody();
+      expect(jsonData.success).to.equal(false);
+  });
+}

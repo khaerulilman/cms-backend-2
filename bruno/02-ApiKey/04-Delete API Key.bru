@@ -1,0 +1,37 @@
+meta {
+  name: Delete API Key
+  type: http
+  seq: 4
+}
+
+delete {
+  url: {{base_url}}/v1/apikey/{{api_key_id_for_delete}}
+  body: none
+  auth: none
+}
+
+headers {
+  Cookie: accessToken={{access_token}}
+}
+
+tests {
+  test('Status code is 200', function () {
+      expect(res.getStatus()).to.equal(200);
+  });
+  
+  test('Response is JSON', function () {
+      expect(res.getBody()).to.be.an('object');
+  });
+  
+  test('Response contains success message', function () {
+      const jsonData = res.getBody();
+      expect(jsonData.success).to.equal(true);
+      expect(jsonData.message).to.exist;
+  });
+  
+  test('Response contains deleted API Key ID', function () {
+      const jsonData = res.getBody();
+      expect(jsonData.data).to.exist;
+      expect(jsonData.data.deletedId).to.exist;
+  });
+}

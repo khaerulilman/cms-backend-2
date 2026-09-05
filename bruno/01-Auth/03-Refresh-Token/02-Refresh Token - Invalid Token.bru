@@ -1,0 +1,32 @@
+meta {
+  name: Refresh Token - Invalid Token
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{base_url}}/v1/auth/refresh-token
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+      "refreshToken": "invalid_expired_token_98765"
+  }
+}
+
+tests {
+  test('Status code is 401', function () {
+      expect(res.getStatus()).to.equal(401);
+  });
+  
+  test('Response indicates error', function () {
+      const jsonData = res.getBody();
+      expect(jsonData.success).to.be.false;
+  });
+}

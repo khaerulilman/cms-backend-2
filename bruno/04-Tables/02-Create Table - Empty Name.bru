@@ -1,0 +1,41 @@
+meta {
+  name: Create Table - Empty Name
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{base_url}}/v1/tables
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  Cookie: accessToken={{access_token}}
+}
+
+body:json {
+  {
+      "projectId": "{{project_id}}",
+      "name": "",
+      "isSubTable": false
+  }
+}
+
+tests {
+  test('Status code is 400 or 422', function () {
+      expect(res.getStatus()).to.be.oneOf([400, 422]);
+  });
+  
+  test('Response has success flag set to false', function () {
+      const jsonData = res.getBody();
+      expect(jsonData.success).to.equal(false);
+  });
+  
+  test('Response contains validation error', function () {
+      const jsonData = res.getBody();
+      const responseText = JSON.stringify(jsonData).toLowerCase();
+      expect(responseText.includes('validation') || responseText.includes('name') || responseText.includes('required')).to.be.true;
+  });
+}

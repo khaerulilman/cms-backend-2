@@ -1,0 +1,32 @@
+meta {
+  name: Get Row by ID - Success
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{base_url}}/v1/cms-rows/{{row_id}}
+  body: none
+  auth: none
+}
+
+headers {
+  Cookie: accessToken={{access_token}}
+}
+
+tests {
+  test('Status code is 200', function () {
+      expect(res.getStatus()).to.equal(200);
+  });
+  
+  test('Response is JSON', function () {
+      expect(res.getBody()).to.be.an('object');
+  });
+  
+  test('Response data contains row id and cells', function () {
+      const jsonData = res.getBody();
+      expect(jsonData.success).to.equal(true);
+      expect(jsonData.data).to.have.property('id');
+      expect(jsonData.data).to.have.property('cells');
+  });
+}

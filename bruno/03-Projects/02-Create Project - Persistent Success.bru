@@ -1,0 +1,51 @@
+meta {
+  name: Create Project - Persistent Success
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{base_url}}/v1/projects
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  Cookie: accessToken={{access_token}}
+}
+
+body:json {
+  {
+      "name": "{{project_name}}",
+      "description": "Persistent project for tables, columns, rows, cells tests"
+  }
+}
+
+script:pre-request {
+  const timestamp = Date.now();
+  const projectName = `CMS Project ${timestamp}`;
+  bru.setEnvVar('project_name', projectName);
+}
+
+tests {
+  test('Status code is 201', function () {
+      expect(res.getStatus()).to.equal(201);
+  });
+  
+  test('Response is JSON', function () {
+      expect(res.getBody()).to.be.an('object');
+  });
+  
+  test('Response contains project data', function () {
+      const jsonData = res.getBody();
+      expect(jsonData.success).to.equal(true);
+      expect(jsonData.data).to.have.property('id');
+      expect(jsonData.data.name).to.equal(bru.getEnvVar('project_name'));
+  });
+  
+  if (res.getStatus() === 201) {
+      const jsonData = res.getBody();
+      bru.setEnvVar('project_id', jsonData.data.id);
+  }
+}

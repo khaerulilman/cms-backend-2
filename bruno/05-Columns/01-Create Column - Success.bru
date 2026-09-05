@@ -1,0 +1,65 @@
+meta {
+  name: Create Column - Success
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{base_url}}/v1/cms-columns
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  Cookie: accessToken={{access_token}}
+}
+
+body:json {
+  {
+      "tableId": "{{table_id}}",
+      "columns": [
+          {
+              "name": "Column 1"
+          },
+          {
+              "name": "Column 2"
+          },
+          {
+              "name": "Column 3"
+          }
+      ]
+  }
+}
+
+tests {
+  test('Status code is 201', function () {
+      expect(res.getStatus()).to.equal(201);
+  });
+  
+  test('Response time is less than 2000ms', function () {
+      expect(res.getResponseTime()).to.be.below(2000);
+  });
+  
+  test('Response is JSON', function () {
+      expect(res.getBody()).to.be.an('object');
+  });
+  
+  test('Response has success flag set to true', function () {
+      const jsonData = res.getBody();
+      expect(jsonData.success).to.equal(true);
+  });
+  
+  // Save data to environment
+  if (res.getStatus() === 201) {
+      const jsonData = res.getBody();
+      if (jsonData.data && jsonData.data.length > 0) {
+          bru.setEnvVar('column_id', jsonData.data[0].id);
+          if (jsonData.data.length > 2) {
+              bru.setEnvVar('column_id_for_delete', jsonData.data[2].id);
+          } else if (jsonData.data.length > 1) {
+              bru.setEnvVar('column_id_for_delete', jsonData.data[1].id);
+          }
+      }
+  }
+}

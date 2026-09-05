@@ -119,7 +119,29 @@ export class AuthController {
 
   async refreshToken(req, res, next) {
     try {
-      const refreshTokenValue = req.cookies?.refreshToken || req.body.refreshToken;
+      let refreshTokenValue = null;
+
+      // 1. Prioritize explicitly provided body (allows client override / testing)
+      if (req.body && req.body.refreshToken !== undefined) {
+        refreshTokenValue = req.body.refreshToken;
+      } else if (req.cookies?.refreshToken) {
+        // 2. Fallback to HttpOnly cookie
+        const cookieVal = req.cookies.refreshToken;
+        refreshTokenValue = Array.isArray(cookieVal) ? cookieVal[0] : cookieVal;
+      }
+
+      if (
+        !refreshTokenValue ||
+        refreshTokenValue === 'null' ||
+        refreshTokenValue === 'undefined' ||
+        (typeof refreshTokenValue === 'string' && refreshTokenValue.trim() === '')
+      ) {
+        return res.status(HTTP_STATUS.UNAUTHORIZED).json({
+          success: false,
+          message: ERROR_MESSAGES.INVALID_REFRESH_TOKEN,
+        });
+      }
+
       logger.debug({}, 'Token refresh request received');
       const result = await this.useCase.refreshToken(refreshTokenValue, this._getClientMetadata(req));
 

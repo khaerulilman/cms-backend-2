@@ -45,8 +45,8 @@ jobs:
       - name: Install Newman
         run: npm install -g newman newman-reporter-htmlextra
 
-      - name: Merge Postman Collections
-        run: npm run postman:merge
+      - name: Merge Bruno API Collections
+        run: npm run bruno:merge
 
       # ============================================================
       # Run API tests per folder using Newman
@@ -56,8 +56,8 @@ jobs:
       - name: "API Test: Auth (Register & Login)"
         if: always()
         run: |
-          newman run "postman/artifacts/API Testing Collection CMS.postman_collection.json" \
-            --environment "postman/environments/CMS API Environment.postman_environment.json" \
+          newman run "bruno/artifacts/API Testing Collection CMS.postman_collection.json" \
+            --environment "bruno/environments/CMS API Environment.postman_environment.json" \
             --env-var "password=SecurePassword123!" \
             --folder "Auth" \
             --reporters cli,htmlextra \
@@ -70,7 +70,7 @@ jobs:
       - name: "API Test: API Key"
         if: always()
         run: |
-          newman run "postman/artifacts/API Testing Collection CMS.postman_collection.json" \
+          newman run "bruno/artifacts/API Testing Collection CMS.postman_collection.json" \
             --environment "newman-reports/ci-env-state.json" \
             --folder "Apikey" \
             --reporters cli,htmlextra \
@@ -83,7 +83,7 @@ jobs:
       - name: "API Test: Projects"
         if: always()
         run: |
-          newman run "postman/artifacts/API Testing Collection CMS.postman_collection.json" \
+          newman run "bruno/artifacts/API Testing Collection CMS.postman_collection.json" \
             --environment "newman-reports/ci-env-state.json" \
             --folder "Projects" \
             --reporters cli,htmlextra \
@@ -96,7 +96,7 @@ jobs:
       - name: "API Test: Tables"
         if: always()
         run: |
-          newman run "postman/artifacts/API Testing Collection CMS.postman_collection.json" \
+          newman run "bruno/artifacts/API Testing Collection CMS.postman_collection.json" \
             --environment "newman-reports/ci-env-state.json" \
             --folder "Tables" \
             --reporters cli,htmlextra \
@@ -109,7 +109,7 @@ jobs:
       - name: "API Test: Columns"
         if: always()
         run: |
-          newman run "postman/artifacts/API Testing Collection CMS.postman_collection.json" \
+          newman run "bruno/artifacts/API Testing Collection CMS.postman_collection.json" \
             --environment "newman-reports/ci-env-state.json" \
             --folder "Columns" \
             --reporters cli,htmlextra \
@@ -122,7 +122,7 @@ jobs:
       - name: "API Test: Rows"
         if: always()
         run: |
-          newman run "postman/artifacts/API Testing Collection CMS.postman_collection.json" \
+          newman run "bruno/artifacts/API Testing Collection CMS.postman_collection.json" \
             --environment "newman-reports/ci-env-state.json" \
             --folder "Rows" \
             --reporters cli,htmlextra \
@@ -135,7 +135,7 @@ jobs:
       - name: "API Test: Cells"
         if: always()
         run: |
-          newman run "postman/artifacts/API Testing Collection CMS.postman_collection.json" \
+          newman run "bruno/artifacts/API Testing Collection CMS.postman_collection.json" \
             --environment "newman-reports/ci-env-state.json" \
             --folder "Cells" \
             --reporters cli,htmlextra \

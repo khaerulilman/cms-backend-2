@@ -1,0 +1,37 @@
+meta {
+  name: Register - SQL Injection Test
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{base_url}}/v1/auth/register
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+      "name": "Test' OR '1'='1",
+      "email": "test@example.com' OR '1'='1",
+      "password": "{{password}}"
+  }
+}
+
+tests {
+  test('Request is handled properly', function () {
+      expect(res.getStatus()).to.be.oneOf([200, 201, 400, 422, 500]);
+  });
+  
+  test('No database details exposed', function () {
+      const body = res.getBody();
+      const responseText = (typeof body === 'string' ? body : JSON.stringify(body)).toLowerCase();
+      expect(responseText).to.not.include('sql');
+      expect(responseText).to.not.include('database');
+      expect(responseText).to.not.include('mysql');
+  });
+}

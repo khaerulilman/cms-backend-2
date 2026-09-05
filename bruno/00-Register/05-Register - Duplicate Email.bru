@@ -1,0 +1,38 @@
+meta {
+  name: Register - Duplicate Email
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{base_url}}/v1/auth/register
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+      "name": "Duplicate User",
+      "email": "{{random_email}}",
+      "password": "{{password}}"
+  }
+}
+
+tests {
+  test('Status code is 400, 409, or 422', function () {
+      expect(res.getStatus()).to.be.oneOf([400, 409, 422]);
+  });
+  
+  test('Error indicates duplicate/exists', function () {
+      const body = res.getBody();
+      const responseText = (typeof body === 'string' ? body : JSON.stringify(body)).toLowerCase();
+      const hasDuplicateError = responseText.includes('already') || 
+                                responseText.includes('exists') || 
+                                responseText.includes('duplicate');
+      expect(hasDuplicateError).to.be.true;
+  });
+}

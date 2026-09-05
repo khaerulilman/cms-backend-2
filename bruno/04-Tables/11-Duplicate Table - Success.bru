@@ -1,0 +1,56 @@
+meta {
+  name: Duplicate Table - Success
+  type: http
+  seq: 11
+}
+
+post {
+  url: {{base_url}}/v1/tables/{{table_id}}/duplicate
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  Cookie: accessToken={{access_token}}
+}
+
+body:json {
+  {}
+}
+
+tests {
+  test('Status code is 201', function () {
+      expect(res.getStatus()).to.equal(201);
+  });
+  
+  test('Response is JSON', function () {
+      expect(res.getBody()).to.be.an('object');
+  });
+  
+  test('Response has success flag set to true', function () {
+      const jsonData = res.getBody();
+      expect(jsonData.success).to.equal(true);
+  });
+  
+  test('Response contains duplicated table data', function () {
+      const jsonData = res.getBody();
+      expect(jsonData.data).to.exist;
+      expect(jsonData.data.id).to.exist;
+      expect(jsonData.data.name).to.include('(Copy)');
+      expect(jsonData.data.columns).to.be.an('array');
+      expect(jsonData.data.rows).to.be.an('array');
+  });
+  
+  test('Response message indicates duplication success', function () {
+      const jsonData = res.getBody();
+      expect(jsonData.message).to.include('duplicated');
+  });
+  
+  if (res.getStatus() === 201) {
+      const jsonData = res.getBody();
+      if (jsonData.data && jsonData.data.id) {
+          bru.setEnvVar('table_id_for_delete', jsonData.data.id);
+      }
+  }
+}

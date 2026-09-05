@@ -1,0 +1,43 @@
+meta {
+  name: Create Row - Persistent Success
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{base_url}}/v1/cms-rows
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  Cookie: accessToken={{access_token}}
+}
+
+body:json {
+  {
+      "tableId": "{{table_id}}"
+  }
+}
+
+tests {
+  test('Status code is 201', function () {
+      expect(res.getStatus()).to.equal(201);
+  });
+  
+  test('Response is JSON', function () {
+      expect(res.getBody()).to.be.an('object');
+  });
+  
+  test('Response has success property set to true', function () {
+      const jsonData = res.getBody();
+      expect(jsonData.success).to.equal(true);
+  });
+  
+  test('Response data contains row id', function () {
+      const jsonData = res.getBody();
+      expect(jsonData.data).to.have.property('id');
+      bru.setEnvVar('row_id', jsonData.data.id);
+  });
+}

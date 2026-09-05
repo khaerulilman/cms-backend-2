@@ -1,0 +1,78 @@
+meta {
+  name: Login - Success
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{base_url}}/v1/auth/login
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+      "email": "{{random_email}}",
+      "password": "{{password}}"
+  }
+}
+
+tests {
+  test('Status code is 200', function () {
+      expect(res.getStatus()).to.equal(200);
+  });
+  
+  test('Response time is less than 2000ms', function () {
+      expect(res.getResponseTime()).to.be.below(2000);
+  });
+  
+  test('Response is JSON', function () {
+      expect(res.getBody()).to.be.an('object');
+  });
+  
+  test('Response contains success message', function () {
+      const jsonData = res.getBody();
+      expect(jsonData.success).to.be.true;
+      expect(jsonData.message).to.not.be.undefined;
+  });
+  
+  // Extract tokens from Set-Cookie headers
+  if (res.getStatus() === 200) {
+      const jsonData = res.getBody();
+      const setCookie = res.getHeader('set-cookie');
+      const cookieHeader = Array.isArray(setCookie) ? setCookie.join('; ') : (setCookie || '');
+      
+      let accessToken = null;
+      let refreshToken = null;
+      
+      if (cookieHeader.includes('accessToken=')) {
+          const match = cookieHeader.match(/accessToken=([^;\s]+)/);
+          if (match && match[1]) {
+              accessToken = match[1];
+          }
+      }
+      
+      if (cookieHeader.includes('refreshToken=')) {
+          const match = cookieHeader.match(/refreshToken=([^;\s]+)/);
+          if (match && match[1]) {
+              refreshToken = match[1];
+          }
+      }
+      
+      if (accessToken) {
+          bru.setEnvVar('access_token', accessToken);
+      }
+      
+      if (refreshToken) {
+          bru.setEnvVar('refresh_token', refreshToken);
+      }
+      
+      if (jsonData && jsonData.data && jsonData.data.user) {
+          bru.setEnvVar('user_id', jsonData.data.user.id);
+      }
+  }
+}

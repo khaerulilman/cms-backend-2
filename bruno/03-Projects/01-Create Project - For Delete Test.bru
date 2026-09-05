@@ -1,0 +1,59 @@
+meta {
+  name: Create Project - For Delete Test
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{base_url}}/v1/projects
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  Cookie: accessToken={{access_token}}
+}
+
+body:json {
+  {
+      "name": "{{project_name}}",
+      "description": "This is a temporary test project for deletion"
+  }
+}
+
+script:pre-request {
+  // Generate unique project name
+  const timestamp = Date.now();
+  const projectName = `Test Project Delete ${timestamp}`;
+  bru.setEnvVar('project_name', projectName);
+}
+
+tests {
+  test('Status code is 201', function () {
+      expect(res.getStatus()).to.equal(201);
+  });
+  
+  test('Response is JSON', function () {
+      expect(res.getBody()).to.be.an('object');
+  });
+  
+  test('Response has success property', function () {
+      const jsonData = res.getBody();
+      expect(jsonData.success).to.equal(true);
+  });
+  
+  test('Response contains project data', function () {
+      const jsonData = res.getBody();
+      const project = jsonData.data;
+      expect(project).to.have.property('id');
+      expect(project).to.have.property('name');
+      expect(project).to.have.property('userId');
+  });
+  
+  // Save project ID for delete tests
+  if (res.getStatus() === 201) {
+      const jsonData = res.getBody();
+      bru.setEnvVar('project_id_for_delete', jsonData.data.id);
+  }
+}

@@ -1,0 +1,32 @@
+meta {
+  name: Get Active Sessions - Success
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{base_url}}/v1/auth/sessions
+  body: none
+  auth: none
+}
+
+headers {
+  Cookie: accessToken={{access_token}}
+}
+
+tests {
+  test('Status code is 200', function () {
+      expect(res.getStatus()).to.equal(200);
+  });
+  
+  test('Response is JSON', function () {
+      expect(res.getBody()).to.be.an('object');
+  });
+  
+  test('Response contains sessions list', function () {
+      const jsonData = res.getBody();
+      expect(jsonData.success).to.be.true;
+      expect(jsonData.data).to.have.property('sessions');
+      expect(Array.isArray(jsonData.data.sessions)).to.be.true;
+  });
+}

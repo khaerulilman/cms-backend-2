@@ -1,0 +1,26 @@
+meta {
+  name: Get Table - Not Found
+  type: http
+  seq: 7
+}
+
+get {
+  url: {{base_url}}/v1/tables/00000000-0000-0000-0000-000000000000
+  body: none
+  auth: none
+}
+
+headers {
+  Cookie: accessToken={{access_token}}
+}
+
+tests {
+  test('Status code is 400, 404, or 500', function () {
+      expect(res.getStatus()).to.be.oneOf([400, 404, 500]);
+  });
+  
+  test('Response indicates table not found', function () {
+      const jsonData = res.getBody();
+      expect(jsonData.success).to.equal(false);
+  });
+}

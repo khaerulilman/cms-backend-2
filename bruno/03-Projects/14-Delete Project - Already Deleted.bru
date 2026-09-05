@@ -1,0 +1,21 @@
+meta {
+  name: Delete Project - Already Deleted
+  type: http
+  seq: 14
+}
+
+delete {
+  url: {{base_url}}/v1/projects/{{project_id_for_delete}}
+  body: none
+  auth: none
+}
+
+headers {
+  Cookie: accessToken={{access_token}}
+}
+
+tests {
+  test('Status code is 404 or 400 or 422', function () {
+      expect(res.getStatus()).to.be.oneOf([400, 404, 422]);
+  });
+}
