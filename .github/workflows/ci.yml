@@ -65,14 +65,17 @@ jobs:
           done
 
       # ============================================================
-      # 3. Bruno Native API Testing (Local Environment)
+      # 3. Install Bruno CLI & Run API Integration Tests
       # Menjalankan pengujian API langsung terhadap localhost:3000/api
       # ============================================================
+      - name: Install Bruno CLI
+        run: npm install -g @usebruno/cli
+
       - name: Run Bruno API Integration Tests
         working-directory: ./bruno
         run: |
           mkdir -p ../bruno-reports
-          npx @usebruno/cli run . \
+          bru run . \
             --env local \
             -r \
             --reporter-html ../bruno-reports/bruno-api-report.html
