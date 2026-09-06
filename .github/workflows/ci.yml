@@ -1,18 +1,30 @@
-name: CI - Install Only
+name: CI - Lint & Bruno API Testing
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main, staging]
   pull_request:
-    branches: [main, develop]
+    branches: [main, staging]
 
 jobs:
-  install:
-    name: Install Dependencies
+  ci:
+    name: Lint & Bruno API Tests
     runs-on: ubuntu-latest
 
+    env:
+      NODE_ENV: test
+      PORT: 3000
+      DATABASE_URL: ${{ secrets.TEST_DATABASE_URL }}
+      JWT_SECRET: ${{ secrets.JWT_SECRET || 'ci_test_jwt_secret_portfolio_cms_123456789' }}
+      JWT_REFRESH_SECRET: ${{ secrets.JWT_REFRESH_SECRET || 'ci_test_jwt_refresh_secret_portfolio_cms_123456789' }}
+      CLOUDINARY_CLOUD_NAME: ${{ secrets.CLOUDINARY_CLOUD_NAME }}
+      CLOUDINARY_API_KEY: ${{ secrets.CLOUDINARY_API_KEY }}
+      CLOUDINARY_API_SECRET: ${{ secrets.CLOUDINARY_API_SECRET }}
+      ALLOWED_ORIGINS: http://localhost:3000,http://localhost:5173
+      FRONTEND_URL: http://localhost:3000
+
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Setup Node.js
@@ -22,4 +34,96 @@ jobs:
           cache: "npm"
 
       - name: Install dependencies
-        run: npm ci
+        run: npm ci || npm install
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Verify Database Connection
+        run: npx prisma db push --skip-generate
+
+      - name: Verify Cloudinary Configuration
+        run: |
+          missing=0
+          for var in CLOUDINARY_CLOUD_NAME CLOUDINARY_API_KEY CLOUDINARY_API_SECRET; do
+            if [ -z "${!var}" ]; then
+              echo "Missing required GitHub Actions secret: $var"
+              missing=1
+            fi
+          done
+          if [ "$missing" -ne 0 ]; then
+            exit 1
+          fi
+
+      # ============================================================
+      # 1. Code Quality & Linting
+      # Jika linting error, pipeline langsung GAGAL
+      # ============================================================
+      - name: Run ESLint
+        run: npm run lint
+
+      # ============================================================
+      # 2. Start Local Backend Server
+      # Menjalankan backend di background untuk pengujian API
+      # ============================================================
+      - name: Start Local Backend Server
+        run: |
+          node server.js > /tmp/server.log 2>&1 &
+          SERVER_PID=$!
+          echo "SERVER_PID=$SERVER_PID" >> $GITHUB_ENV
+          echo "Server started with PID: $SERVER_PID"
+          echo "Waiting for backend server to start..."
+          for i in {1..30}; do
+            if curl -s http://localhost:3000/health | grep -q "ok"; then
+              echo "✅ Backend server is up and healthy!"
+              exit 0
+            fi
+            if ! kill -0 $SERVER_PID 2>/dev/null; then
+              echo "❌ ERROR: Server process died unexpectedly!"
+              echo "=== Server Logs ==="
+              cat /tmp/server.log
+              exit 1
+            fi
+            echo "Waiting for server ($i/30)..."
+            sleep 1
+          done
+          echo "❌ ERROR: Server failed to start within 30 seconds"
+          echo "=== Server Logs ==="
+          cat /tmp/server.log
+          exit 1
+
+      # ============================================================
+      # 3. Install Bruno CLI & Run API Integration Tests
+      # Menjalankan pengujian API langsung terhadap localhost:3000/api
+      # ============================================================
+      - name: Install Bruno CLI
+        run: npm install -g @usebruno/cli
+
+      - name: Run Bruno API Integration Tests
+        working-directory: ./bruno
+        run: |
+          mkdir -p ../bruno-reports
+          bru run . \
+            --env local \
+            -r \
+            --reporter-html ../bruno-reports/bruno-api-report.html
+
+      # ============================================================
+      # 4. Show Server Logs on Failure (Debug)
+      # ============================================================
+      - name: Show Server Logs (on failure)
+        if: failure()
+        run: |
+          echo "=== Server Logs ==="
+          cat /tmp/server.log 2>/dev/null || echo "No server logs found"
+
+      # ============================================================
+      # 5. Upload Bruno HTML Report Artifact
+      # ============================================================
+      - name: Upload Bruno Test Reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: bruno-api-test-report
+          path: bruno-reports/
+          retention-days: 30

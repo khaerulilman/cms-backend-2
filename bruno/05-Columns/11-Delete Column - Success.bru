@@ -1,0 +1,30 @@
+meta {
+  name: Delete Column - Success
+  type: http
+  seq: 11
+}
+
+delete {
+  url: {{base_url}}/v1/cms-columns/{{column_id_for_delete}}
+  body: none
+  auth: none
+}
+
+headers {
+  Cookie: accessToken={{access_token}}
+}
+
+tests {
+  test('Status code is 200', function () {
+      expect(res.getStatus()).to.equal(200);
+  });
+  
+  test('Response is JSON', function () {
+      expect(res.getBody()).to.be.an('object');
+  });
+  
+  test('Response has success flag set to true', function () {
+      const jsonData = res.getBody();
+      expect(jsonData.success).to.equal(true);
+  });
+}

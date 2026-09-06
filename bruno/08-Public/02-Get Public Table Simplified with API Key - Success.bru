@@ -1,0 +1,33 @@
+meta {
+  name: Get Public Table Simplified with API Key - Success
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{base_url}}/v1/project/{{project_id}}/table/{{table_id}}/simplify
+  body: none
+  auth: none
+}
+
+headers {
+  x-api-key: {{api_key}}
+}
+
+tests {
+  test('Status code is 200', function () {
+      expect(res.getStatus()).to.equal(200);
+  });
+  
+  test('Response is JSON', function () {
+      expect(res.getBody()).to.be.an('object');
+  });
+  
+  test('Response contains simplified table format', function () {
+      const jsonData = res.getBody();
+      expect(jsonData.success).to.equal(true);
+      expect(jsonData.data).to.have.property('name');
+      expect(jsonData.data).to.have.property('cells');
+      expect(Array.isArray(jsonData.data.cells)).to.be.true;
+  });
+}

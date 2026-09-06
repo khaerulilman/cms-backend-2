@@ -6,7 +6,7 @@ export class ApiKeyController {
   constructor({ apiKeyUseCase }) {
     this.useCase = apiKeyUseCase;
   }
-  
+
   async generateApiKey(req, res, next) {
     try {
       const userId = req.user.id;

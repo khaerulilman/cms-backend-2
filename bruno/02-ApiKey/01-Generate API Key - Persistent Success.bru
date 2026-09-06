@@ -1,0 +1,46 @@
+meta {
+  name: Generate API Key - Persistent Success
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{base_url}}/v1/apikey
+  body: none
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  Cookie: accessToken={{access_token}}
+}
+
+tests {
+  test('Status code is 201', function () {
+      expect(res.getStatus()).to.equal(201);
+  });
+  
+  test('Response is JSON', function () {
+      expect(res.getBody()).to.be.an('object');
+  });
+  
+  test('Response contains success message', function () {
+      const jsonData = res.getBody();
+      expect(jsonData.success).to.equal(true);
+      expect(jsonData.message).to.exist;
+  });
+  
+  test('Response contains API Key data', function () {
+      const jsonData = res.getBody();
+      expect(jsonData.data).to.exist;
+      expect(jsonData.data.id).to.exist;
+      expect(jsonData.data.apiKey).to.exist;
+      expect(jsonData.data.createdAt).to.exist;
+  });
+  
+  if (res.getStatus() === 201) {
+      const jsonData = res.getBody();
+      bru.setEnvVar('api_key', jsonData.data.apiKey);
+      bru.setEnvVar('api_key_id', jsonData.data.id);
+  }
+}

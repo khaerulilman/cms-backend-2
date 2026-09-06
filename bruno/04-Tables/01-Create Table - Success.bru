@@ -1,0 +1,53 @@
+meta {
+  name: Create Table - Success
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{base_url}}/v1/tables
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  Cookie: accessToken={{access_token}}
+}
+
+body:json {
+  {
+      "projectId": "{{project_id}}",
+      "name": "Test Table",
+      "isSubTable": false
+  }
+}
+
+tests {
+  test('Status code is 201', function () {
+      expect(res.getStatus()).to.equal(201);
+  });
+  
+  test('Response is JSON', function () {
+      expect(res.getBody()).to.be.an('object');
+  });
+  
+  test('Response has success flag set to true', function () {
+      const jsonData = res.getBody();
+      expect(jsonData.success).to.equal(true);
+  });
+  
+  test('Response contains table data', function () {
+      const jsonData = res.getBody();
+      expect(jsonData.data).to.exist;
+      expect(jsonData.data.id).to.exist;
+      expect(jsonData.data.name).to.equal('Test Table');
+      expect(jsonData.data.projectId).to.exist;
+  });
+  
+  if (res.getStatus() === 201) {
+      const jsonData = res.getBody();
+      bru.setEnvVar('table_id', jsonData.data.id);
+      bru.setEnvVar('table_id_for_delete', jsonData.data.id);
+  }
+}

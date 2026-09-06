@@ -1,0 +1,31 @@
+meta {
+  name: Get All Rows by Table - Success
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{base_url}}/v1/cms-rows/table/{{table_id}}
+  body: none
+  auth: none
+}
+
+headers {
+  Cookie: accessToken={{access_token}}
+}
+
+tests {
+  test('Status code is 200', function () {
+      expect(res.getStatus()).to.equal(200);
+  });
+  
+  test('Response is JSON', function () {
+      expect(res.getBody()).to.be.an('object');
+  });
+  
+  test('Response data is an array', function () {
+      const jsonData = res.getBody();
+      expect(jsonData.success).to.equal(true);
+      expect(Array.isArray(jsonData.data)).to.equal(true);
+  });
+}

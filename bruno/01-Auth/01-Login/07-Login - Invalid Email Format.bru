@@ -1,0 +1,33 @@
+meta {
+  name: Login - Invalid Email Format
+  type: http
+  seq: 7
+}
+
+post {
+  url: {{base_url}}/v1/auth/login
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+      "email": "invalid-email-format",
+      "password": "TestPassword123!"
+  }
+}
+
+tests {
+  test('Status code is 400 or 422', function () {
+      expect(res.getStatus()).to.be.oneOf([400, 422]);
+  });
+  
+  test('Response indicates validation error', function () {
+      const jsonData = res.getBody();
+      expect(jsonData.message || jsonData.error).to.not.be.undefined;
+  });
+}

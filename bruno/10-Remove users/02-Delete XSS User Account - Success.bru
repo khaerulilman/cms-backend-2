@@ -1,0 +1,30 @@
+meta {
+  name: Delete XSS User Account - Success
+  type: http
+  seq: 2
+}
+
+delete {
+  url: {{base_url}}/v1/auth/profile
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer {{xss_access_token}}
+  Cookie: accessToken={{xss_access_token}}
+}
+
+tests {
+  test('Status code is 200, 401, or 404', function () {
+      expect(res.getStatus()).to.be.oneOf([200, 401, 404]);
+  });
+  
+  if (res.getStatus() === 200) {
+      test('Response indicates XSS user was deleted successfully', function () {
+          const jsonData = res.getBody();
+          expect(jsonData.success).to.be.true;
+          expect(jsonData.message).to.equal('User account deleted successfully');
+      });
+  }
+}

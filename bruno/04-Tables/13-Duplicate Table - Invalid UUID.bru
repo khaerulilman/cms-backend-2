@@ -1,0 +1,31 @@
+meta {
+  name: Duplicate Table - Invalid UUID
+  type: http
+  seq: 13
+}
+
+post {
+  url: {{base_url}}/v1/tables/not-a-uuid/duplicate
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  Cookie: accessToken={{access_token}}
+}
+
+body:json {
+  {}
+}
+
+tests {
+  test('Status code is 400, 404, 422, or 500', function () {
+      expect(res.getStatus()).to.be.oneOf([400, 404, 422, 500]);
+  });
+  
+  test('Response has success flag set to false', function () {
+      const jsonData = res.getBody();
+      expect(jsonData.success).to.equal(false);
+  });
+}

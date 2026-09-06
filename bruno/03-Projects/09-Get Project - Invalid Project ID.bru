@@ -1,0 +1,26 @@
+meta {
+  name: Get Project - Invalid Project ID
+  type: http
+  seq: 9
+}
+
+get {
+  url: {{base_url}}/v1/projects/invalid-project-id-12345
+  body: none
+  auth: none
+}
+
+headers {
+  Cookie: accessToken={{access_token}}
+}
+
+tests {
+  test('Status code is 400 or 422', function () {
+      expect(res.getStatus()).to.be.oneOf([400, 422]);
+  });
+  
+  test('Response indicates error', function () {
+      const jsonData = res.getBody();
+      expect(jsonData.message || jsonData.error).to.exist;
+  });
+}

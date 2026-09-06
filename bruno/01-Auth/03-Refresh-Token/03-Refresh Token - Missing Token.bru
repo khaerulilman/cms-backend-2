@@ -1,0 +1,33 @@
+meta {
+  name: Refresh Token - Missing Token
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{base_url}}/v1/auth/refresh-token
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  Cookie: refreshToken=
+}
+
+body:json {
+  {
+      "refreshToken": ""
+  }
+}
+
+tests {
+  test('Status code is 401', function () {
+      expect(res.getStatus()).to.equal(401);
+  });
+  
+  test('Response indicates error', function () {
+      const jsonData = res.getBody();
+      expect(jsonData.success).to.be.false;
+  });
+}

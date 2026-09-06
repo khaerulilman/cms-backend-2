@@ -1,7 +1,7 @@
 import app from './app.js';
+import { initializeRedis } from './src/frameworks/cache/redis.js';
 import { config } from './src/frameworks/config/env.js';
 import logger from './src/frameworks/logging/logger.js';
-import { initializeRedis } from './src/frameworks/cache/redis.js';
 
 const PORT = config.PORT;
 

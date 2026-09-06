@@ -104,6 +104,13 @@ export class AuthRepository {
       },
     });
   }
+
+  async deleteUser(id) {
+    logger.debug({ userId: id }, 'Deleting user and cascading relations');
+    return this.prisma.user.delete({
+      where: { id },
+    });
+  }
 }
 
 export default AuthRepository;

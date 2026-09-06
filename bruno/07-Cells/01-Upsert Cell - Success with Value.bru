@@ -1,0 +1,56 @@
+meta {
+  name: Upsert Cell - Success with Value
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{base_url}}/v1/cms-cells/row/{{row_id}}
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  Cookie: accessToken={{access_token}}
+}
+
+body:json {
+  {
+      "columnId": "{{column_id}}",
+      "value": "Test cell content"
+  }
+}
+
+script:pre-request {
+  if (!bru.getEnvVar('access_token')) {
+      console.error('access_token is not set');
+  }
+}
+
+tests {
+  test('Status code is 200', function () {
+      expect(res.getStatus()).to.equal(200);
+  });
+  
+  test('Response is JSON', function () {
+      expect(res.getBody()).to.be.an('object');
+  });
+  
+  test('Response has success property set to true', function () {
+      const jsonData = res.getBody();
+      expect(jsonData.success).to.equal(true);
+  });
+  
+  test('Response data has required fields', function () {
+      const jsonData = res.getBody();
+      expect(jsonData.data).to.have.property('id');
+      expect(jsonData.data).to.have.property('rowId');
+      expect(jsonData.data).to.have.property('columnId');
+  });
+  
+  if (res.getStatus() === 200) {
+      const jsonData = res.getBody();
+      bru.setEnvVar('cell_id', jsonData.data.id);
+  }
+}

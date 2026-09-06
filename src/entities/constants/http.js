@@ -22,6 +22,7 @@ export const SUCCESS_MESSAGES = {
   TOKEN_REFRESHED: 'Token refreshed successfully',
   PROFILE_RETRIEVED: 'Profile retrieved successfully',
   SESSIONS_RETRIEVED: 'Active sessions retrieved successfully',
+  USER_DELETED: 'User account deleted successfully',
 
   // Projects
   PROJECT_CREATED: 'Project created successfully',

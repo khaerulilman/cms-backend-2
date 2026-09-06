@@ -54,6 +54,10 @@ export const createAuthRoutes = (authController) => {
     authController.getProfile(req, res, next),
   );
 
+  router.delete('/profile', authMiddleware, (req, res, next) =>
+    authController.deleteAccount(req, res, next),
+  );
+
   router.post('/logout-all', authMiddleware, (req, res, next) =>
     authController.logoutAllDevices(req, res, next),
   );

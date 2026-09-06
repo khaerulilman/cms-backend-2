@@ -1,0 +1,26 @@
+meta {
+  name: Logout All Devices - Unauthorized
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{base_url}}/v1/auth/logout-all
+  body: none
+  auth: none
+}
+
+headers {
+  Authorization: Bearer invalid_expired_token_12345
+}
+
+tests {
+  test('Status code is 401', function () {
+      expect(res.getStatus()).to.equal(401);
+  });
+  
+  test('Response indicates unauthorized', function () {
+      const jsonData = res.getBody();
+      expect(jsonData.success).to.be.false;
+  });
+}

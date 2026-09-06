@@ -1,0 +1,33 @@
+meta {
+  name: Get Profile - Success
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{base_url}}/v1/auth/profile
+  body: none
+  auth: none
+}
+
+headers {
+  Cookie: accessToken={{access_token}}
+}
+
+tests {
+  test('Status code is 200', function () {
+      expect(res.getStatus()).to.equal(200);
+  });
+  
+  test('Response is JSON', function () {
+      expect(res.getBody()).to.be.an('object');
+  });
+  
+  test('Response contains user profile', function () {
+      const jsonData = res.getBody();
+      expect(jsonData.success).to.be.true;
+      expect(jsonData.data).to.have.property('id');
+      expect(jsonData.data).to.have.property('email');
+      expect(jsonData.data).to.have.property('name');
+  });
+}

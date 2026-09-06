@@ -1,0 +1,40 @@
+meta {
+  name: Create Project - With Long Description
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{base_url}}/v1/projects
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  Cookie: accessToken={{access_token}}
+}
+
+body:json {
+  {
+      "name": "{{project_name_long}}",
+      "description": "This is a comprehensive test project with a detailed description. It contains information about the project structure, goals, and implementation details for testing purposes."
+  }
+}
+
+script:pre-request {
+  const timestamp = Date.now();
+  const projectName = `Long Desc Project ${timestamp}`;
+  bru.setEnvVar('project_name_long', projectName);
+}
+
+tests {
+  test('Status code is 201', function () {
+      expect(res.getStatus()).to.equal(201);
+  });
+  
+  test('Description is stored correctly', function () {
+      const jsonData = res.getBody();
+      expect(jsonData.data.description).to.exist;
+  });
+}

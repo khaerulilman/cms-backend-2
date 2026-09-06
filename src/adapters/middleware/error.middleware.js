@@ -1,7 +1,7 @@
 import { HTTP_STATUS, ERROR_MESSAGES } from '../../entities/constants/http.js';
-import { captureError } from '../../frameworks/monitoring/sentry.js';
 import * as ErrorClasses from '../../entities/errors/index.js';
 import logger from '../../frameworks/logging/logger.js';
+import { captureError } from '../../frameworks/monitoring/sentry.js';
 
 // Helper function to sanitize error message - removes sensitive information
 const sanitizeErrorMessage = (message) => {

@@ -1,0 +1,31 @@
+meta {
+  name: Delete Project - Success
+  type: http
+  seq: 12
+}
+
+delete {
+  url: {{base_url}}/v1/projects/{{project_id_for_delete}}
+  body: none
+  auth: none
+}
+
+headers {
+  Cookie: accessToken={{access_token}}
+}
+
+tests {
+  test('Status code is 200', function () {
+      expect(res.getStatus()).to.equal(200);
+  });
+  
+  test('Response has success property', function () {
+      const jsonData = res.getBody();
+      expect(jsonData.success).to.equal(true);
+  });
+  
+  test('Response contains success message', function () {
+      const jsonData = res.getBody();
+      expect(jsonData.message).to.include('deleted');
+  });
+}

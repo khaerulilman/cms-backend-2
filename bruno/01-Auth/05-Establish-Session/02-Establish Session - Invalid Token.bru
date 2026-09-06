@@ -1,0 +1,32 @@
+meta {
+  name: Establish Session - Invalid Token
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{base_url}}/v1/auth/establish-session
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+      "setupToken": "invalid-setup-token"
+  }
+}
+
+tests {
+  test('Status code is 401', function () {
+      expect(res.getStatus()).to.equal(401);
+  });
+  
+  test('Response indicates invalid or expired setup token', function () {
+      const jsonData = res.getBody();
+      expect(jsonData.success).to.be.false;
+  });
+}

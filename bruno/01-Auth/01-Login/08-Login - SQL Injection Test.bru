@@ -1,0 +1,36 @@
+meta {
+  name: Login - SQL Injection Test
+  type: http
+  seq: 8
+}
+
+post {
+  url: {{base_url}}/v1/auth/login
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+}
+
+body:json {
+  {
+      "email": "test@example.com' OR '1'='1",
+      "password": "password' OR '1'='1"
+  }
+}
+
+tests {
+  test('Request is handled properly', function () {
+      expect(res.getStatus()).to.be.oneOf([200, 400, 401, 422, 500]);
+  });
+  
+  test('No database details exposed', function () {
+      const body = res.getBody();
+      const responseText = (typeof body === 'string' ? body : JSON.stringify(body)).toLowerCase();
+      expect(responseText).to.not.include('sql');
+      expect(responseText).to.not.include('database');
+      expect(responseText).to.not.include('mysql');
+  });
+}

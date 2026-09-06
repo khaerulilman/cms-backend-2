@@ -1,0 +1,33 @@
+meta {
+  name: Bulk Delete Rows - Success
+  type: http
+  seq: 8
+}
+
+delete {
+  url: {{base_url}}/v1/cms-rows/bulk
+  body: json
+  auth: none
+}
+
+headers {
+  Content-Type: application/json
+  Cookie: accessToken={{access_token}}
+}
+
+body:json {
+  {
+      "rowIds": ["{{row_id_for_bulk_delete}}"]
+  }
+}
+
+tests {
+  test('Status code is 200', function () {
+      expect(res.getStatus()).to.equal(200);
+  });
+  
+  test('Response indicates bulk delete success', function () {
+      const jsonData = res.getBody();
+      expect(jsonData.success).to.equal(true);
+  });
+}

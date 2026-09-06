@@ -1,0 +1,33 @@
+meta {
+  name: Get Table - Success
+  type: http
+  seq: 6
+}
+
+get {
+  url: {{base_url}}/v1/tables/{{table_id}}
+  body: none
+  auth: none
+}
+
+headers {
+  Cookie: accessToken={{access_token}}
+}
+
+tests {
+  test('Status code is 200', function () {
+      expect(res.getStatus()).to.equal(200);
+  });
+  
+  test('Response has success flag set to true', function () {
+      const jsonData = res.getBody();
+      expect(jsonData.success).to.equal(true);
+  });
+  
+  test('Response contains table data', function () {
+      const jsonData = res.getBody();
+      expect(jsonData.data.id).to.exist;
+      expect(jsonData.data.name).to.exist;
+      expect(jsonData.data.columns).to.be.an('array');
+  });
+}

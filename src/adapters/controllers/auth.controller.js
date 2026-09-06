@@ -1,9 +1,9 @@
-import { config } from '../../frameworks/config/env.js';
 import {
   SUCCESS_MESSAGES,
   HTTP_STATUS,
   ERROR_MESSAGES,
 } from '../../entities/constants/http.js';
+import { config } from '../../frameworks/config/env.js';
 import logger from '../../frameworks/logging/logger.js';
 
 // Detect if frontend and backend are on different sites (cross-site)
@@ -119,7 +119,29 @@ export class AuthController {
 
   async refreshToken(req, res, next) {
     try {
-      const refreshTokenValue = req.cookies?.refreshToken || req.body.refreshToken;
+      let refreshTokenValue = null;
+
+      // 1. Prioritize explicitly provided body (allows client override / testing)
+      if (req.body && req.body.refreshToken !== undefined) {
+        refreshTokenValue = req.body.refreshToken;
+      } else if (req.cookies?.refreshToken) {
+        // 2. Fallback to HttpOnly cookie
+        const cookieVal = req.cookies.refreshToken;
+        refreshTokenValue = Array.isArray(cookieVal) ? cookieVal[0] : cookieVal;
+      }
+
+      if (
+        !refreshTokenValue ||
+        refreshTokenValue === 'null' ||
+        refreshTokenValue === 'undefined' ||
+        (typeof refreshTokenValue === 'string' && refreshTokenValue.trim() === '')
+      ) {
+        return res.status(HTTP_STATUS.UNAUTHORIZED).json({
+          success: false,
+          message: ERROR_MESSAGES.INVALID_REFRESH_TOKEN,
+        });
+      }
+
       logger.debug({}, 'Token refresh request received');
       const result = await this.useCase.refreshToken(refreshTokenValue, this._getClientMetadata(req));
 
@@ -168,6 +190,25 @@ export class AuthController {
         success: true,
         message: SUCCESS_MESSAGES.PROFILE_RETRIEVED,
         data: profile,
+      });
+    } catch (error) {
+      next(error);
+    }
+  }
+
+  async deleteAccount(req, res, next) {
+    try {
+      const userId = req.user.id;
+      logger.debug({ userId }, 'Delete account request received');
+      await this.useCase.deleteAccount(userId);
+
+      res.clearCookie('accessToken', getClearCookieOptions());
+      res.clearCookie('refreshToken', getClearCookieOptions());
+
+      logger.info({ userId }, 'User account deleted successfully');
+      return res.status(HTTP_STATUS.OK).json({
+        success: true,
+        message: SUCCESS_MESSAGES.USER_DELETED,
       });
     } catch (error) {
       next(error);

@@ -30,7 +30,6 @@ function sanitizeObject(obj) {
   return sanitized;
 }
 
-
 export const sanitizeInput = (req, res, next) => {
   if (req.body) {
     req.body = sanitizeObject(req.body);

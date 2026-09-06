@@ -3,48 +3,51 @@ import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { v4 as uuidv4 } from 'uuid';
 
 import { AuthRepository } from '../../adapters/repositories/auth.repository.js';
+import { config } from '../config/env.js';
 import prismaClient from '../database/prisma/client.js';
 import logger from '../logging/logger.js';
-import { config } from '../config/env.js';
 
 const authRepository = new AuthRepository(prismaClient);
 
-passport.use(
-  new GoogleStrategy(
-    {
-      clientID: config.GOOGLE_CLIENT_ID,
-      clientSecret: config.GOOGLE_CLIENT_SECRET,
-      callbackURL: config.GOOGLE_CALLBACK_URL,
-    },
-    async (_accessToken, _refreshToken, profile, done) => {
-      try {
-        const email = profile.emails[0].value;
-        const name = profile.displayName;
+if (config.GOOGLE_CLIENT_ID && config.GOOGLE_CLIENT_SECRET && config.GOOGLE_CALLBACK_URL) {
+  passport.use(
+    new GoogleStrategy(
+      {
+        clientID: config.GOOGLE_CLIENT_ID,
+        clientSecret: config.GOOGLE_CLIENT_SECRET,
+        callbackURL: config.GOOGLE_CALLBACK_URL,
+      },
+      async (_accessToken, _refreshToken, profile, done) => {
+        try {
+          const email = profile.emails[0].value;
+          const name = profile.displayName;
 
-        let user = await authRepository.findUserByEmail(email);
+          let user = await authRepository.findUserByEmail(email);
 
-        if (!user) {
-          user = await authRepository.createUser({
-            id: uuidv4(),
-            email,
-            name,
-            password: uuidv4(),
-          });
-          logger.info({ email }, 'New user created via Google OAuth');
-        } else {
-          logger.debug({ email }, 'Existing user logged in via Google OAuth');
+          if (!user) {
+            user = await authRepository.createUser({
+              id: uuidv4(),
+              email,
+              name,
+              password: uuidv4(),
+            });
+            logger.info({ email }, 'New user created via Google OAuth');
+          } else {
+            logger.debug({ email }, 'Existing user logged in via Google OAuth');
+          }
+
+          return done(null, user);
+        } catch (error) {
+          logger.error({ err: error }, 'Google OAuth authentication failed');
+          return done(error, null);
         }
-
-        return done(null, user);
-      } catch (error) {
-        logger.error({ err: error }, 'Google OAuth authentication failed');
-        return done(error, null);
-      }
-    },
-  ),
-);
-
-logger.info('Google OAuth strategy initialized');
+      },
+    ),
+  );
+  logger.info('Google OAuth strategy initialized');
+} else {
+  logger.warn('Google OAuth credentials not found — Google OAuth disabled');
+}
 
 passport.serializeUser((user, done) => {
   done(null, user.id);
