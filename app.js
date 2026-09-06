@@ -14,7 +14,7 @@ import passport from './src/frameworks/oauth/google-oauth.js';
 
 const app = express();
 
-// trigeer push
+// trigeer deploy
 // Dynamic CORS middleware
 app.use((req, res, next) => {
   // Allow all origins for public simplify endpoint
