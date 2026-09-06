@@ -17,3 +17,6 @@ scripts/
 newman-reports/
 
 
+
+.vercel
+.env*

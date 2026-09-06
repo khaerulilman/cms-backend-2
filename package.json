@@ -41,6 +41,7 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.39.2",
+    "@usebruno/cli": "^4.1.0",
     "cross-env": "^7.0.3",
     "dotenv-cli": "^7.4.2",
     "eslint": "^8.57.0",
