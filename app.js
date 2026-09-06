@@ -49,7 +49,6 @@ app.use(requestLogger);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-
 // Cookie middleware
 app.use(cookieParser());
 
