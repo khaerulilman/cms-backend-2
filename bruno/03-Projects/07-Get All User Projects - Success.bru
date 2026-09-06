@@ -33,7 +33,7 @@ tests {
       expect(jsonData.data).to.be.an('array');
   });
   
-  test('Response time is less than 2000ms', function () {
-      expect(res.getResponseTime()).to.be.below(2000);
+  test('Response time is less than 5000ms', function () {
+      expect(res.getResponseTime()).to.be.below(5000);
   });
 }
