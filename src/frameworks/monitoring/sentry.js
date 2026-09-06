@@ -10,11 +10,13 @@ export const initSentry = (app) => {
   }
 
   try {
-    Sentry.init({
-      dsn: config.SENTRY_DSN,
-      environment: config.NODE_ENV,
-      tracesSampleRate: config.NODE_ENV === 'production' ? 0.2 : 1.0,
-    });
+    if (!Sentry.getClient()) {
+      Sentry.init({
+        dsn: config.SENTRY_DSN,
+        environment: config.NODE_ENV,
+        tracesSampleRate: config.NODE_ENV === 'production' ? 0.2 : 1.0,
+      });
+    }
 
     if (typeof Sentry.setupExpressErrorHandler === 'function') {
       Sentry.setupExpressErrorHandler(app);
