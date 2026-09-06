@@ -19,6 +19,7 @@ jobs:
       JWT_REFRESH_SECRET: ${{ secrets.JWT_REFRESH_SECRET || 'ci_test_jwt_refresh_secret_portfolio_cms_123456789' }}
       ALLOWED_ORIGINS: http://localhost:3000,http://localhost:5173
       FRONTEND_URL: http://localhost:3000
+      VERCEL_BYPASS_SECRET: ${{ secrets.VERCEL_BYPASS_SECRET }}
 
     steps:
       - name: Checkout repository
@@ -78,6 +79,7 @@ jobs:
           bru run . \
             --env local \
             -r \
+            --env-var "vercel_bypass_secret=${{ secrets.VERCEL_BYPASS_SECRET }}" \
             --reporter-html ../bruno-reports/bruno-api-report.html
 
       # ============================================================
