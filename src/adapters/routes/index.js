@@ -1,14 +1,15 @@
 import { Router } from 'express';
 
 import { apiKeyMiddleware } from '../middleware/apiKey.middleware.js';
-import { createAuthRoutes } from './auth.routes.js';
+
 import { createApiKeyRoutes } from './apikey.routes.js';
-import { createProjectRoutes } from './project.routes.js';
-import { createTableRoutes } from './table.routes.js';
-import { createColumnRoutes } from './column.routes.js';
-import { createRowRoutes } from './row.routes.js';
+import { createAuthRoutes } from './auth.routes.js';
 import { createCellRoutes } from './cell.routes.js';
+import { createColumnRoutes } from './column.routes.js';
 import { createDiagnosticRoutes } from './diagnostic.routes.js';
+import { createProjectRoutes } from './project.routes.js';
+import { createRowRoutes } from './row.routes.js';
+import { createTableRoutes } from './table.routes.js';
 
 export const createApiRoutes = (controllers) => {
   const router = Router();

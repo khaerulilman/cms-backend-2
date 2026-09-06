@@ -1,17 +1,16 @@
-import cookieParser from "cookie-parser";
-import cors from "cors";
-import express from "express";
-import session from "express-session";
+import cookieParser from 'cookie-parser';
+import cors from 'cors';
+import express from 'express';
+import session from 'express-session';
 
-import { config } from "./src/frameworks/config/env.js";
-import passport from "./src/frameworks/oauth/google-oauth.js";
-import { initSentry } from "./src/frameworks/monitoring/sentry.js";
-import { setupSwagger } from "./src/frameworks/docs/swagger.js";
-import errorMiddleware from "./src/adapters/middleware/error.middleware.js";
-import requestLogger from "./src/adapters/middleware/requestLogger.middleware.js";
-import { createApiRoutes } from "./src/adapters/routes/index.js";
-import container from "./src/container.js";
-import logger from "./src/frameworks/logging/logger.js";
+import errorMiddleware from './src/adapters/middleware/error.middleware.js';
+import requestLogger from './src/adapters/middleware/requestLogger.middleware.js';
+import { createApiRoutes } from './src/adapters/routes/index.js';
+import container from './src/container.js';
+import { config } from './src/frameworks/config/env.js';
+import logger from './src/frameworks/logging/logger.js';
+import { initSentry } from './src/frameworks/monitoring/sentry.js';
+import passport from './src/frameworks/oauth/google-oauth.js';
 
 const app = express();
 
@@ -19,12 +18,12 @@ const app = express();
 // Dynamic CORS middleware
 app.use((req, res, next) => {
   // Allow all origins for public simplify endpoint
-  if (req.path.includes("/simplify")) {
+  if (req.path.includes('/simplify')) {
     cors({
-      origin: "*",
+      origin: '*',
       credentials: false,
-      methods: ["GET", "OPTIONS"],
-      allowedHeaders: ["x-api-key", "Content-Type"],
+      methods: ['GET', 'OPTIONS'],
+      allowedHeaders: ['x-api-key', 'Content-Type'],
     })(req, res, next);
   } else {
     // Standard CORS for other routes
@@ -50,6 +49,7 @@ app.use(requestLogger);
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+
 // Cookie middleware
 app.use(cookieParser());
 
@@ -67,29 +67,25 @@ app.use(
 app.use(passport.initialize());
 app.use(passport.session());
 
-// Swagger API Documentation
-setupSwagger(app);
-
 // Root endpoint - Welcome message
-app.get("/", (req, res) => {
+app.get('/', (req, res) => {
   res.json({
     success: true,
-    message: "Portfolio CMS API v1.1.1",
-    version: "1.0.0",
+    message: 'Portfolio CMS API v1.1.1',
+    version: '1.0.0',
     environment: config.NODE_ENV,
     endpoints: {
-      health: "/health",
-      api: "/api",
-      docs: "/api-docs",
+      health: '/health',
+      api: '/api',
     },
   });
 });
 
 // Health check
-app.get("/health", (req, res) => {
+app.get('/health', (req, res) => {
   res.json({
     success: true,
-    status: "ok",
+    status: 'ok',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
   });
@@ -106,7 +102,7 @@ initSentry(app);
 app.use((req, res) => {
   res.status(404).json({
     success: false,
-    message: "Route not found",
+    message: 'Route not found',
     path: req.path,
   });
 });
@@ -114,6 +110,6 @@ app.use((req, res) => {
 // Global error handler
 app.use(errorMiddleware);
 
-logger.info({ env: config.NODE_ENV }, "App initialized");
+logger.info({ env: config.NODE_ENV }, 'App initialized');
 
 export default app;

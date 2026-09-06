@@ -6,7 +6,7 @@ meta {
 
 post {
   url: {{base_url}}/v1/cms-cells/row/{{row_id}}
-  body: multipart-form
+  body: multipartForm
   auth: none
 }
 
@@ -17,7 +17,7 @@ headers {
 body:multipart-form {
   columnId: {{column_id}}
   value: Test cell with uploaded image
-  image: @file(../../assets/test-image.png)
+  image: @file(C:\Users\hp\Downloads\nextjs.png) @contentType(image/png)
 }
 
 tests {

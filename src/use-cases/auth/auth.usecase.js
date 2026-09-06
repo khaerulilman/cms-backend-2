@@ -185,6 +185,19 @@ export class AuthUseCase {
     return result;
   }
 
+  async deleteAccount(userId) {
+    logger.debug({ userId }, 'Delete account use-case called');
+    const user = await this.repository.findUserById(userId);
+    if (!user) {
+      logger.warn({ userId }, 'User not found for deletion');
+      throw new NotFoundError(ERROR_MESSAGES.USER_NOT_FOUND);
+    }
+
+    await this.repository.deleteUser(userId);
+    logger.info({ userId }, 'User account and cascaded data deleted successfully');
+    return true;
+  }
+
   async _storeRefreshToken(userId, token, metadata = {}) {
     const decoded = this.jwtService.verifyToken(token);
     logger.debug(

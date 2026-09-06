@@ -1,6 +1,6 @@
 import { HTTP_STATUS, ERROR_MESSAGES } from '../../entities/constants/http.js';
-import JwtService from '../services/jwt.service.js';
 import logger from '../../frameworks/logging/logger.js';
+import JwtService from '../services/jwt.service.js';
 
 export const authMiddleware = (req, res, next) => {
   try {

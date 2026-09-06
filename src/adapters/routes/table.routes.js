@@ -1,9 +1,9 @@
 import { Router } from 'express';
 
+import { cacheResponse, invalidateCache } from '../../frameworks/cache/redis.js';
 import { authMiddleware } from '../middleware/auth.middleware.js';
 import { sanitizeInput } from '../middleware/sanitize.middleware.js';
 import { validateRequest } from '../middleware/validation.middleware.js';
-import { cacheResponse, invalidateCache } from '../../frameworks/cache/redis.js';
 import { tableValidationSchemas } from '../services/validation/table.validation.js';
 
 export const createTableRoutes = (tableController) => {

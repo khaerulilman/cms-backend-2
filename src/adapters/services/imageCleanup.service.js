@@ -1,8 +1,9 @@
 import logger from '../../frameworks/logging/logger.js';
+
 import CloudinaryService from './cloudinary.service.js';
 
 export class ImageCleanupService {
-  
+
   constructor(prisma) {
     this.prisma = prisma;
   }

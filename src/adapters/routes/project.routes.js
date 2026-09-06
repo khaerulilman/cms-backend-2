@@ -1,10 +1,10 @@
 import { Router } from 'express';
 import Joi from 'joi';
 
+import { cacheResponse, invalidateCache } from '../../frameworks/cache/redis.js';
 import { authMiddleware } from '../middleware/auth.middleware.js';
 import { sanitizeInput } from '../middleware/sanitize.middleware.js';
 import { validateRequest, validateParams } from '../middleware/validation.middleware.js';
-import { cacheResponse, invalidateCache } from '../../frameworks/cache/redis.js';
 import { projectValidationSchemas } from '../services/validation/project.validation.js';
 
 const projectIdParamSchema = Joi.object({

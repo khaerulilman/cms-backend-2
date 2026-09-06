@@ -1,18 +1,22 @@
-name: CI - Install Only
+name: CI - Lint & Bruno API Testing
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main, staging]
   pull_request:
-    branches: [main, develop]
+    branches: [main, staging]
 
 jobs:
-  install:
-    name: Install Dependencies
+  ci:
+    name: Lint & Bruno API Tests
     runs-on: ubuntu-latest
 
+    env:
+      NODE_ENV: test
+      DATABASE_URL: ${{ secrets.TEST_DATABASE_URL }}
+
     steps:
-      - name: Checkout code
+      - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Setup Node.js
@@ -23,3 +27,36 @@ jobs:
 
       - name: Install dependencies
         run: npm ci
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      # ============================================================
+      # 1. Code Quality & Linting
+      # Jika linting error, pipeline langsung GAGAL
+      # ============================================================
+      - name: Run ESLint
+        run: npm run lint
+
+      # ============================================================
+      # 2. Bruno Native API Testing
+      # Menjalankan pengujian API langsung dari file .bru
+      # ============================================================
+      - name: Run Bruno API Integration Tests
+        run: |
+          mkdir -p bruno-reports
+          npx @usebruno/cli run bruno \
+            --env staging \
+            -r \
+            --reporter-html bruno-reports/bruno-api-report.html
+
+      # ============================================================
+      # 3. Upload Bruno HTML Report Artifact
+      # ============================================================
+      - name: Upload Bruno Test Reports
+        uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: bruno-api-test-report
+          path: bruno-reports/
+          retention-days: 30

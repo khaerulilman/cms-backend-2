@@ -3,9 +3,9 @@ import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { v4 as uuidv4 } from 'uuid';
 
 import { AuthRepository } from '../../adapters/repositories/auth.repository.js';
+import { config } from '../config/env.js';
 import prismaClient from '../database/prisma/client.js';
 import logger from '../logging/logger.js';
-import { config } from '../config/env.js';
 
 const authRepository = new AuthRepository(prismaClient);
 

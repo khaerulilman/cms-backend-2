@@ -40,5 +40,14 @@ tests {
           const responseText = typeof body === 'string' ? body : JSON.stringify(body);
           expect(responseText).to.not.include('<script>');
       });
+
+      const setCookie = res.getHeader('set-cookie');
+      const cookieHeader = Array.isArray(setCookie) ? setCookie.join('; ') : (setCookie || '');
+      if (cookieHeader.includes('accessToken=')) {
+          const match = cookieHeader.match(/accessToken=([^;\s]+)/);
+          if (match && match[1]) {
+              bru.setEnvVar('xss_access_token', match[1]);
+          }
+      }
   }
 }

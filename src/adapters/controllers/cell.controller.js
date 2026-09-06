@@ -1,6 +1,6 @@
 import { HTTP_STATUS, SUCCESS_MESSAGES } from '../../entities/constants/http.js';
-import FileService from '../services/file.service.js';
 import logger from '../../frameworks/logging/logger.js';
+import FileService from '../services/file.service.js';
 
 export class CellController {
 
