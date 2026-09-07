@@ -4,12 +4,7 @@ import { ValidationError, TableNotFoundError } from '../../entities/errors/index
 import logger from '../../frameworks/logging/logger.js';
 
 export class TableUseCase {
-  /**
-   * @param {object} deps
-   * @param {import('../../adapters/repositories/table.repository.js').TableRepository} deps.tableRepository
-   * @param {import('../../adapters/services/cloudinary.service.js').CloudinaryService} deps.cloudinaryService
-   * @param {import('../../adapters/services/imageCleanup.service.js').ImageCleanupService} deps.imageCleanupService
-   */
+
   constructor({ tableRepository, cloudinaryService, imageCleanupService }) {
     this.repository = tableRepository;
     this.cloudinaryService = cloudinaryService;

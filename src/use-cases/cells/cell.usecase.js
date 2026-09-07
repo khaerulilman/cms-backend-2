@@ -2,11 +2,7 @@ import { NotFoundError } from '../../entities/errors/index.js';
 import logger from '../../frameworks/logging/logger.js';
 
 export class CellUseCase {
-  /**
-   * @param {object} deps
-   * @param {import('../../adapters/repositories/cell.repository.js').CellRepository} deps.cellRepository
-   * @param {import('../../adapters/services/cloudinary.service.js').CloudinaryService} deps.cloudinaryService
-   */
+
   constructor({ cellRepository, cloudinaryService }) {
     this.repository = cellRepository;
     this.cloudinaryService = cloudinaryService;

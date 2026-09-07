@@ -3,7 +3,7 @@ import { Router } from 'express';
 import { cacheResponse, invalidateCache } from '../../frameworks/cache/redis.js';
 import { authMiddleware } from '../middleware/auth.middleware.js';
 import { sanitizeInput } from '../middleware/sanitize.middleware.js';
-import { validateRequest } from '../middleware/validation.middleware.js';
+import { validateRequest, validateParams } from '../middleware/validation.middleware.js';
 import { tableValidationSchemas } from '../services/validation/table.validation.js';
 
 export const createTableRoutes = (tableController) => {
@@ -49,6 +49,7 @@ export const createTableRoutes = (tableController) => {
   // Duplicate table
   router.post(
     '/:tableId/duplicate',
+    validateParams(tableValidationSchemas.duplicateTable),
     invalidateCache(['tables', 'cms-columns', 'cms-rows', 'cms-cells']),
     (req, res, next) => tableController.duplicateTable(req, res, next),
   );

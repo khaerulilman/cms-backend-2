@@ -1,5 +1,4 @@
 import logger from '../../frameworks/logging/logger.js';
-import tableValidationSchemas from '../services/validation/table.validation.js';
 
 export class TableController {
 
@@ -99,24 +98,10 @@ export class TableController {
       const { isSubTable } = req.body;
       logger.debug({ tableId, userId, isSubTable }, 'Duplicate table request received');
 
-      const { error, value } = tableValidationSchemas.duplicateTable.validate(
-        { tableId },
-        { abortEarly: false },
-      );
-
-      if (error) {
-        logger.warn({ tableId, errorCount: error.details?.length }, 'Table validation failed for duplicate');
-        return res.status(400).json({
-          success: false,
-          message: 'Validation error',
-          errors: error.details.map((err) => ({ field: err.path[0], message: err.message })),
-        });
-      }
-
-      const duplicatedTable = await this.useCase.duplicateTable(value.tableId, userId, { isSubTable });
+      const duplicatedTable = await this.useCase.duplicateTable(tableId, userId, { isSubTable });
 
       logger.info({
-        sourceTableId: value.tableId,
+        sourceTableId: tableId,
         newTableId: duplicatedTable.id,
         newTableName: duplicatedTable.name,
         userId,

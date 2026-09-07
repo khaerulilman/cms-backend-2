@@ -6,32 +6,33 @@ import {
 import { config } from '../../frameworks/config/env.js';
 import logger from '../../frameworks/logging/logger.js';
 
-// Detect if frontend and backend are on different sites (cross-site)
-const isCrossSite =
-  config.COOKIE_CROSS_SITE === 'true' || config.COOKIE_CROSS_SITE === true;
-
-const getCookieOptions = (maxAge) => ({
-  httpOnly: true,
-  secure: isCrossSite || config.NODE_ENV === 'production',
-  sameSite: isCrossSite
-    ? 'none'
-    : config.NODE_ENV === 'production'
-      ? 'strict'
-      : 'lax',
-  maxAge,
-  path: '/',
-});
-
-const getClearCookieOptions = () => {
-  const { maxAge: _maxAge, ...options } = getCookieOptions(0);
-  return options;
-};
-
 export class AuthController {
 
   constructor({ authUseCase, jwtService }) {
     this.useCase = authUseCase;
     this.jwtService = jwtService;
+  }
+
+  _getCookieOptions(maxAge) {
+    const isCrossSite =
+      config.COOKIE_CROSS_SITE === 'true' || config.COOKIE_CROSS_SITE === true;
+
+    return {
+      httpOnly: true,
+      secure: isCrossSite || config.NODE_ENV === 'production',
+      sameSite: isCrossSite
+        ? 'none'
+        : config.NODE_ENV === 'production'
+          ? 'strict'
+          : 'lax',
+      maxAge,
+      path: '/',
+    };
+  }
+
+  _getClearCookieOptions() {
+    const { maxAge: _maxAge, ...options } = this._getCookieOptions(0);
+    return options;
   }
 
   _getClientMetadata(req) {
@@ -47,8 +48,8 @@ export class AuthController {
       logger.debug({ email }, 'Register request received');
       const result = await this.useCase.register(email, password, name, this._getClientMetadata(req));
 
-      res.cookie('accessToken', result.accessToken, getCookieOptions(15 * 60 * 1000));
-      res.cookie('refreshToken', result.refreshToken, getCookieOptions(7 * 24 * 60 * 60 * 1000));
+      res.cookie('accessToken', result.accessToken, this._getCookieOptions(15 * 60 * 1000));
+      res.cookie('refreshToken', result.refreshToken, this._getCookieOptions(7 * 24 * 60 * 60 * 1000));
 
       logger.info({ userId: result.user.id, email }, 'User registered successfully');
       return res.status(HTTP_STATUS.CREATED).json({
@@ -67,8 +68,8 @@ export class AuthController {
       logger.debug({ email }, 'Login request received');
       const result = await this.useCase.login(email, password, this._getClientMetadata(req));
 
-      res.cookie('accessToken', result.accessToken, getCookieOptions(15 * 60 * 1000));
-      res.cookie('refreshToken', result.refreshToken, getCookieOptions(7 * 24 * 60 * 60 * 1000));
+      res.cookie('accessToken', result.accessToken, this._getCookieOptions(15 * 60 * 1000));
+      res.cookie('refreshToken', result.refreshToken, this._getCookieOptions(7 * 24 * 60 * 60 * 1000));
 
       logger.info({ userId: result.user.id, email }, 'User logged in successfully');
       return res.status(HTTP_STATUS.OK).json({
@@ -96,8 +97,8 @@ export class AuthController {
 
       await this.useCase._storeRefreshToken(user.id, refreshToken, this._getClientMetadata(req));
 
-      res.cookie('accessToken', accessToken, getCookieOptions(15 * 60 * 1000));
-      res.cookie('refreshToken', refreshToken, getCookieOptions(7 * 24 * 60 * 60 * 1000));
+      res.cookie('accessToken', accessToken, this._getCookieOptions(15 * 60 * 1000));
+      res.cookie('refreshToken', refreshToken, this._getCookieOptions(7 * 24 * 60 * 60 * 1000));
 
       const setupToken = this.jwtService.generateSetupToken(user.id, user.email);
 
@@ -145,8 +146,8 @@ export class AuthController {
       logger.debug({}, 'Token refresh request received');
       const result = await this.useCase.refreshToken(refreshTokenValue, this._getClientMetadata(req));
 
-      res.cookie('accessToken', result.accessToken, getCookieOptions(15 * 60 * 1000));
-      res.cookie('refreshToken', result.refreshToken, getCookieOptions(7 * 24 * 60 * 60 * 1000));
+      res.cookie('accessToken', result.accessToken, this._getCookieOptions(15 * 60 * 1000));
+      res.cookie('refreshToken', result.refreshToken, this._getCookieOptions(7 * 24 * 60 * 60 * 1000));
 
       logger.info({}, 'Token refreshed successfully');
       return res.status(HTTP_STATUS.OK).json({
@@ -166,8 +167,8 @@ export class AuthController {
         await this.useCase.logout(refreshToken);
       }
 
-      res.clearCookie('accessToken', getClearCookieOptions());
-      res.clearCookie('refreshToken', getClearCookieOptions());
+      res.clearCookie('accessToken', this._getClearCookieOptions());
+      res.clearCookie('refreshToken', this._getClearCookieOptions());
 
       logger.info({}, 'User logged out successfully');
       return res.status(HTTP_STATUS.OK).json({
@@ -202,8 +203,8 @@ export class AuthController {
       logger.debug({ userId }, 'Delete account request received');
       await this.useCase.deleteAccount(userId);
 
-      res.clearCookie('accessToken', getClearCookieOptions());
-      res.clearCookie('refreshToken', getClearCookieOptions());
+      res.clearCookie('accessToken', this._getClearCookieOptions());
+      res.clearCookie('refreshToken', this._getClearCookieOptions());
 
       logger.info({ userId }, 'User account deleted successfully');
       return res.status(HTTP_STATUS.OK).json({
@@ -221,8 +222,8 @@ export class AuthController {
       logger.debug({ userId }, 'Logout all devices request received');
       await this.useCase.logoutAllDevices(userId);
 
-      res.clearCookie('accessToken', getClearCookieOptions());
-      res.clearCookie('refreshToken', getClearCookieOptions());
+      res.clearCookie('accessToken', this._getClearCookieOptions());
+      res.clearCookie('refreshToken', this._getClearCookieOptions());
 
       logger.info({ userId }, 'User logged out from all devices');
       return res.status(HTTP_STATUS.OK).json({
@@ -290,8 +291,8 @@ export class AuthController {
 
       await this.useCase._storeRefreshToken(decoded.id, refreshToken, metadata);
 
-      res.cookie('accessToken', accessToken, getCookieOptions(15 * 60 * 1000));
-      res.cookie('refreshToken', refreshToken, getCookieOptions(7 * 24 * 60 * 60 * 1000));
+      res.cookie('accessToken', accessToken, this._getCookieOptions(15 * 60 * 1000));
+      res.cookie('refreshToken', refreshToken, this._getCookieOptions(7 * 24 * 60 * 60 * 1000));
 
       logger.info({ userId: decoded.id }, 'Session established successfully');
       return res.status(HTTP_STATUS.OK).json({

@@ -1,10 +1,8 @@
 import {
   HTTP_STATUS,
-  ERROR_MESSAGES,
   SUCCESS_MESSAGES,
 } from '../../entities/constants/http.js';
 import logger from '../../frameworks/logging/logger.js';
-import columnValidationSchemas from '../services/validation/column.validation.js';
 
 export class ColumnController {
 
@@ -18,21 +16,7 @@ export class ColumnController {
       const { tableId, columns } = req.body;
       logger.debug({ tableId, columnCount: columns?.length }, 'Create columns request received');
 
-      const { error, value } = columnValidationSchemas.createColumns.validate(
-        { tableId, columns },
-        { abortEarly: false },
-      );
-
-      if (error) {
-        logger.warn({ tableId, errorCount: error.details?.length }, 'Column validation failed');
-        return res.status(HTTP_STATUS.BAD_REQUEST).json({
-          success: false,
-          message: ERROR_MESSAGES.VALIDATION_ERROR,
-          errors: error.details.map((err) => ({ field: err.path[0], message: err.message })),
-        });
-      }
-
-      const createdColumns = await this.useCase.createColumns(value.tableId, userId, value.columns);
+      const createdColumns = await this.useCase.createColumns(tableId, userId, columns);
 
       logger.info({ tableId, userId, createdCount: createdColumns.length }, 'Columns created successfully');
       return res.status(HTTP_STATUS.CREATED).json({
@@ -88,21 +72,7 @@ export class ColumnController {
       const { name } = req.body;
       logger.debug({ columnId, newName: name }, 'Update column request received');
 
-      const { error, value } = columnValidationSchemas.updateColumn.validate(
-        { name },
-        { abortEarly: false },
-      );
-
-      if (error) {
-        logger.warn({ columnId, errorCount: error.details?.length }, 'Column validation failed');
-        return res.status(HTTP_STATUS.BAD_REQUEST).json({
-          success: false,
-          message: ERROR_MESSAGES.VALIDATION_ERROR,
-          errors: error.details.map((err) => ({ field: err.path[0], message: err.message })),
-        });
-      }
-
-      const updatedColumn = await this.useCase.updateColumn(columnId, userId, value);
+      const updatedColumn = await this.useCase.updateColumn(columnId, userId, { name });
 
       logger.info({ columnId, userId, newName: updatedColumn.name }, 'Column updated successfully');
       return res.status(HTTP_STATUS.OK).json({
@@ -135,3 +105,4 @@ export class ColumnController {
 }
 
 export default ColumnController;
+
